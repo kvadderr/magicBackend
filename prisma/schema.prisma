@@ -32,6 +32,13 @@ enum ETypeOfProduct {
   CARDS
 }
 
+enum ETypeOfURL {
+  SITE_SECTION
+  CUSTOM_PAGE
+  EXTERNAL_LINK
+  DROPDOWN_LIST
+}
+
 model User {
   id String @id @default(uuid())
 
@@ -99,18 +106,18 @@ model HistoryOfTransfers {
 
 model Inventory {
   id                  String                      @id @default(uuid())
+  amount              Int
+  status              EStatusOfProductInInventory @default(INVENTORY)
+  dateOfReceive       DateTime?
   purchase            HistoryOfPurchase           @relation(fields: [historyOfPurchaseId], references: [id])
   historyOfPurchaseId String
   user                User                        @relation(fields: [userId], references: [id])
   userId              String
   typeOfSever         TypeOfServer                @relation(fields: [typeOfServerId], references: [id])
-  server              Server                      @relation(fields: [serverId], references: [id])
-  amount              Int
-  status              EStatusOfProductInInventory @default(INVENTORY)
-  dateOfReceive       DateTime?
-  serverName          String? //? нужно ли значение по дефолту?
   typeOfServerId      String
+  server              Server                      @relation(fields: [serverId], references: [id])
   serverId            String
+  serverName          String? //? нужно ли значение по дефолту?
   product             Product                     @relation(fields: [productId], references: [id])
   productId           String
 }
@@ -173,4 +180,24 @@ model Promocodes {
   limitActivation   Int
   groupId           String   @default(uuid())
   itemSet           String[]
+}
+
+model baseSettings {
+  id           String   @id @default(uuid())
+  header       String
+  saleMode     Boolean  @default(false)
+  startBalance Int
+  mainPage     String
+  apiKey       String
+  IPWhiteList  String[]
+}
+
+model urlSettings {
+  id       String     @id @default(uuid())
+  icon     String //? храним юрлу на фото или локально?
+  typeUrl  ETypeOfURL
+  url      String
+  hidden   Boolean    @default(false)
+  name     String?
+  sections String[]
 }
