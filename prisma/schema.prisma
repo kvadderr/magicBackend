@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -42,11 +42,11 @@ enum ETypeOfURL {
 model User {
   id String @id @default(uuid())
 
-  steamName     String
-  steamID       String
+  steamName     String    @db.LongText
+  steamID       String    @db.LongText
   email         String    @unique
-  password      String
-  steamAvatar   String //? фронт отдельно запрашивает ее или мы храним у себя?
+  password      String    @db.LongText
+  steamAvatar   String    @db.LongText //? фронт отдельно запрашивает ее или мы храним у себя?
   mainBalance   Int
   bonusBalance  Int
   firstDateAuth DateTime
@@ -54,9 +54,9 @@ model User {
   experience    Int
   sumOfDeposits Int
   sumOfRefunds  Int
-  discordLink   String? //? как привязывать все это?
-  VKLink        String?
-  TGLink        String?
+  discordLink   String?   @db.LongText //? как привязывать все это?
+  VKLink        String?   @db.LongText
+  TGLink        String?   @db.LongText
   createdAt     DateTime  @default(now())
   lastActivity  DateTime?
 
@@ -72,8 +72,8 @@ model HistoryOfMoney {
   id String @id @default(uuid())
 
   user      User?           @relation(fields: [userId], references: [id])
-  userId    String?
-  method    String
+  userId    String?         @db.LongText
+  method    String          @db.LongText
   amount    Int
   createdAt DateTime        @default(now()) //? нужен ли дефолт?
   status    EStatusOfRefill @default(FALSE)
@@ -82,7 +82,7 @@ model HistoryOfMoney {
 model HistoryOfPurchase {
   id     String  @id @default(uuid())
   user   User?   @relation(fields: [userId], references: [id])
-  userId String?
+  userId String? @db.LongText
 
   amount           Int
   createdAt        DateTime    @default(now()) //? нужен ли дефолт?
@@ -91,15 +91,15 @@ model HistoryOfPurchase {
   refund           Boolean
   Inventory        Inventory[]
   product          Product     @relation(fields: [productId], references: [id])
-  productId        String
+  productId        String      @db.LongText
 }
 
 model HistoryOfTransfers {
   id         String   @id @default(uuid())
   sender     User     @relation("sender", fields: [senderId], references: [id])
   receiver   User     @relation("receiver", fields: [receiverId], references: [id])
-  senderId   String
-  receiverId String
+  senderId   String   @db.LongText
+  receiverId String   @db.LongText
   amount     Int
   createdAt  DateTime @default(now()) //? нужен ли дефолт?
 }
@@ -110,22 +110,22 @@ model Inventory {
   status              EStatusOfProductInInventory @default(INVENTORY)
   dateOfReceive       DateTime?
   purchase            HistoryOfPurchase           @relation(fields: [historyOfPurchaseId], references: [id])
-  historyOfPurchaseId String
+  historyOfPurchaseId String                      @db.LongText
   user                User                        @relation(fields: [userId], references: [id])
-  userId              String
+  userId              String                      @db.LongText
   typeOfSever         TypeOfServer                @relation(fields: [typeOfServerId], references: [id])
-  typeOfServerId      String
+  typeOfServerId      String                      @db.LongText
   server              Server                      @relation(fields: [serverId], references: [id])
-  serverId            String
-  serverName          String? //? нужно ли значение по дефолту?
+  serverId            String                      @db.LongText
+  serverName          String?                     @db.LongText //? нужно ли значение по дефолту?
   product             Product                     @relation(fields: [productId], references: [id])
-  productId           String
+  productId           String                      @db.LongText
 }
 
 model TypeOfServer {
   id          String      @id @default(uuid())
-  name        String
-  description String
+  name        String      @db.LongText
+  description String      @db.LongText
   number      Int
   hidden      Boolean     @default(false)
   Inventory   Inventory[]
@@ -136,22 +136,22 @@ model TypeOfServer {
 model Server {
   id             String       @id @default(uuid())
   typeOfSever    TypeOfServer @relation(fields: [typeOfServerId], references: [id])
-  typeOfServerId String
-  IP             String
-  port           String
-  apiKey         String
+  typeOfServerId String       @db.LongText
+  IP             String       @db.LongText
+  port           String       @db.LongText
+  apiKey         String       @db.LongText
   Inventory      Inventory[]
 }
 
 model Product {
   id                String              @id @default(uuid())
-  name              String
-  description       String
-  image             String
+  name              String              @db.LongText
+  description       String              @db.LongText
+  image             String              @db.LongText
   type              ETypeOfProduct
   productContent    Json
   typeOfServer      TypeOfServer        @relation(fields: [typeOfServerId], references: [id])
-  typeOfServerId    String
+  typeOfServerId    String              @db.LongText
   amount            Int
   isChangeAmount    Boolean             @default(false)
   price             Int
@@ -169,7 +169,7 @@ model Product {
 
 model Promocodes {
   id                String   @id @default(uuid())
-  name              String
+  name              String   @db.LongText
   countOfActivation Int
   createdAt         DateTime @default(now())
   startDate         DateTime
@@ -178,26 +178,26 @@ model Promocodes {
   depositBonus      Int?
   plusBonusBalance  Int?
   limitActivation   Int
-  groupId           String   @default(uuid())
-  itemSet           String[]
+  groupId           String   @default(uuid()) @db.LongText
+  itemSet           String   @db.LongText
 }
 
 model baseSettings {
-  id           String   @id @default(uuid())
-  header       String
-  saleMode     Boolean  @default(false)
+  id           String  @id @default(uuid())
+  header       String  @db.LongText
+  saleMode     Boolean @default(false)
   startBalance Int
-  mainPage     String
-  apiKey       String
-  IPWhiteList  String[]
+  mainPage     String  @db.LongText
+  apiKey       String  @db.LongText
+  IPWhiteList  String  @db.LongText
 }
 
 model urlSettings {
   id       String     @id @default(uuid())
-  icon     String //? храним юрлу на фото или локально?
+  icon     String     @db.LongText //? храним юрлу на фото или локально?
   typeUrl  ETypeOfURL
-  url      String
+  url      String     @db.LongText
   hidden   Boolean    @default(false)
-  name     String?
-  sections String[]
+  name     String?    @db.LongText
+  sections String?    @db.LongText
 }
