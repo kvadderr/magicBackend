@@ -1,7 +1,11 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { compare, hash } from 'bcrypt';
 
-import { CreateUserDto, LoginUserDto, UpdatePasswordDto } from './dto/create-user.dto';
+import {
+  CreateUserDto,
+  LoginUserDto,
+  UpdatePasswordDto,
+} from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
@@ -11,34 +15,41 @@ import { STEAM_API_KEY } from 'src/core/config';
 
 @Injectable()
 export class UsersService {
-  constructor (private prisma: PrismaService,private readonly httpService: HttpService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly httpService: HttpService,
+  ) {}
 
-  async create(id: string
-    ) {
+  async create(id: string) {
     try {
-      const userSteamData = await firstValueFrom( 
-        this.httpService.get(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${STEAM_API_KEY}&steamids=${id}`).pipe(
-        catchError((error: AxiosError) => {
-          console.error(error.response.data);
-          throw 'An error happened!';
-        })))
-    
-    console.log(userSteamData.data.response.players[0]);
-    const mainData = userSteamData.data.response.players[0]
+      const userSteamData = await firstValueFrom(
+        this.httpService
+          .get(
+            `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${STEAM_API_KEY}&steamids=${id}`,
+          )
+          .pipe(
+            catchError((error: AxiosError) => {
+              console.error(error.response.data);
+              throw 'An error happened!';
+            }),
+          ),
+      );
 
-    const config = await this.prisma.baseSettings.findFirst()
-    
+      console.log(userSteamData.data.response.players[0]);
+      const mainData = userSteamData.data.response.players[0];
 
-    const newUser = await this.prisma.user.create({
+      const config = await this.prisma.baseSettings.findFirst();
+
+      const newUser = await this.prisma.user.create({
         data: {
-            steamName: mainData.personaname,
-            steamID: mainData.steamid,
-            steamAvatar: mainData.avatarfull,
-            mainBalance: config.startBalance,
-        }
-    })
+          steamName: mainData.personaname,
+          steamID: mainData.steamid,
+          steamAvatar: mainData.avatarfull,
+          mainBalance: config.startBalance,
+        },
+      });
 
-    return newUser
+      return newUser;
     } catch (error) {
       console.error(error.message);
       throw error;
@@ -54,13 +65,13 @@ export class UsersService {
     }
   }
 
-  async findBySteamId(id : string) {
+  async findBySteamId(id: string) {
     try {
       const candidate = await this.prisma.user.findFirst({
         where: {
-            steamID: id
-        }
-    })
+          steamID: id,
+        },
+      });
 
       return candidate;
     } catch (error) {
@@ -73,20 +84,21 @@ export class UsersService {
     try {
       const user = await this.prisma.user.findUnique({
         where: {
-          id
-        }
-      })
+          id,
+        },
+      });
 
       if (!user) {
-          throw new HttpException('User with provided id does not exist.', HttpStatus.BAD_REQUEST)
-        }
+        throw new HttpException(
+          'User with provided id does not exist.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
 
-      return user
+      return user;
     } catch (error) {
       console.error(error.message);
       return error;
     }
   }
-
-  
 }

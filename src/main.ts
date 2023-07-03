@@ -12,7 +12,7 @@ async function bootstrap() {
       'http://localhost:5000',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:5000',
-      'https://api.steampowered.com'
+      'https://api.steampowered.com',
     ],
     credentials: true,
   });
@@ -26,7 +26,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/api/docs', app, document);
 
-  
   await app.listen(PORT);
 }
 bootstrap();

@@ -1,127 +1,116 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
-import * as jwt from 'jsonwebtoken'
-import { JwtPayload } from 'src/auth/dto/jwtPayload.dto'
-import { PrismaService } from 'src/prisma/prisma.service'
-import { SaveTokenDto } from './dto/saveToken.dto'
-
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import * as jwt from 'jsonwebtoken';
+import { JwtPayload } from 'src/auth/dto/jwtPayload.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { SaveTokenDto } from './dto/saveToken.dto';
 
 @Injectable()
 export class TokenService {
-  constructor(
-    private readonly prisma: PrismaService
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   generateTokens(payload: JwtPayload) {
     const accessToken = jwt.sign(payload, process.env.SECRETKEY, {
       expiresIn: '6h',
-    })
+    });
     const refreshToken = jwt.sign(payload, process.env.SECRETKEY, {
       expiresIn: '30d',
-    })
+    });
     return {
       accessToken,
       refreshToken,
-    }
+    };
   }
 
   async validateAccessToken(token: string) {
     try {
-      const userData = jwt.verify(
-        token,
-        process.env.SECRETKEY
-      ) as JwtPayload
+      const userData = jwt.verify(token, process.env.SECRETKEY) as JwtPayload;
 
-      return userData
+      return userData;
     } catch (e) {
-      return null
+      return null;
     }
   }
 
   async validateRefreshToken(token: string) {
     try {
-      const userData = jwt.verify(
-        token,
-        process.env.SECRETKEY
-      ) as JwtPayload
+      const userData = jwt.verify(token, process.env.SECRETKEY) as JwtPayload;
 
       const currentToken = await this.prisma.token.findFirst({
         where: { token, userId: userData.id },
-      })
+      });
 
-      if (
-        !currentToken
-      ) {
+      if (!currentToken) {
         throw new HttpException(
           'Пользователь не авторизован',
-          HttpStatus.UNAUTHORIZED
-        )
+          HttpStatus.UNAUTHORIZED,
+        );
       }
 
-      return userData
+      return userData;
     } catch (e) {
       const currentToken = await this.prisma.token.findFirst({
         where: { token },
-      })
+      });
       if (currentToken) {
         await this.prisma.token.delete({
-            where: {
-                id: currentToken.id
-            }
-        })
-    }
-      return null
+          where: {
+            id: currentToken.id,
+          },
+        });
+      }
+      return null;
     }
   }
 
   async saveToken(dto: SaveTokenDto) {
     const tokens = await this.prisma.token.findMany({
       where: { userId: dto.userId },
-    })
+    });
 
     if (tokens.length === 10) {
       await this.prisma.token.deleteMany({
         where: {
           userId: dto.userId,
         },
-      })
+      });
     }
 
     const candidateToken = await this.prisma.token.findFirst({
       where: {
         userId: dto.userId,
       },
-    })
+    });
 
     if (candidateToken) {
       await this.prisma.token.delete({
         where: {
-            id: candidateToken.id
-        }
-      })
+          id: candidateToken.id,
+        },
+      });
     }
     const token = await this.prisma.token.create({
-        data: {
-      userId: dto.userId,
-      token: dto.token,
-        }
-    })
+      data: {
+        userId: dto.userId,
+        token: dto.token,
+      },
+    });
 
-    return token
+    return token;
   }
 
   async deleteToken(token: string) {
     const candidate = await this.prisma.token.findFirst({
-        where: {
-            token
-        }
-    })
+      where: {
+        token,
+      },
+    });
     const tokenData = await this.prisma.token.delete({
       where: {
-        id: candidate.id
+        id: candidate.id,
       },
-    })
+    });
 
-    return tokenData
+    return tokenData;
   }
 
   async deleteAllTokens(userId: string) {
@@ -129,9 +118,9 @@ export class TokenService {
       where: {
         userId,
       },
-    })
+    });
 
-    return tokenData
+    return tokenData;
   }
 
   async findToken(token: string) {
@@ -139,8 +128,8 @@ export class TokenService {
       where: {
         token,
       },
-    })
-    return tokenData
+    });
+    return tokenData;
   }
 
   async deleteDeadTokens(userId: string) {
@@ -148,22 +137,22 @@ export class TokenService {
       where: {
         userId,
       },
-    })
+    });
 
     for (const token of tokens) {
       try {
-        jwt.verify(token.token, process.env.JWT_REFTESH_SECRET)
+        jwt.verify(token.token, process.env.JWT_REFTESH_SECRET);
       } catch (e) {
         await this.prisma.token.delete({
-            where: {
-                id: token.id
-            }
-        })
+          where: {
+            id: token.id,
+          },
+        });
       }
     }
   }
 
   parseJwt(token: string) {
-    return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString())
+    return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
   }
 }

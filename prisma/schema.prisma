@@ -47,7 +47,7 @@ model User {
 
   steamName     String    @db.LongText
   steamID       String    @unique
-  email         String?    @unique
+  email         String?   @unique
   steamAvatar   String    @db.LongText //? фронт отдельно запрашивает ее или мы храним у себя?
   mainBalance   Int
   bonusBalance  Int       @default(0)
@@ -68,14 +68,14 @@ model User {
   TransfersSender   Transfers[]   @relation("sender")
   TransfersReceiver Transfers[]   @relation("receiver")
   Inventory         Inventory[]
-  Tokens Token[]
+  Tokens            Token[]
 }
 
 model Transaction {
   id String @id @default(uuid())
 
   user      User?           @relation(fields: [userId], references: [id])
-  userId    String?         
+  userId    String?
   method    String          @db.LongText
   amount    Int
   createdAt DateTime        @default(now())
@@ -85,7 +85,7 @@ model Transaction {
 model Purchase {
   id               String      @id @default(uuid())
   user             User?       @relation(fields: [userId], references: [id])
-  userId           String?     
+  userId           String?
   amount           Int
   createdAt        DateTime    @default(now())
   lostMainBalance  Int
@@ -93,15 +93,15 @@ model Purchase {
   refund           Boolean
   Inventory        Inventory[]
   product          Product     @relation(fields: [productId], references: [id])
-  productId        String      
+  productId        String
 }
 
 model Transfers {
   id         String   @id @default(uuid())
   sender     User     @relation("sender", fields: [senderId], references: [id])
   receiver   User     @relation("receiver", fields: [receiverId], references: [id])
-  senderId   String   
-  receiverId String   
+  senderId   String
+  receiverId String
   amount     Int
   createdAt  DateTime @default(now())
 }
@@ -112,16 +112,16 @@ model Inventory {
   status              EStatusOfProductInInventory @default(INVENTORY)
   dateOfReceive       DateTime?
   purchase            Purchase                    @relation(fields: [historyOfPurchaseId], references: [id])
-  historyOfPurchaseId String                      
+  historyOfPurchaseId String
   user                User                        @relation(fields: [userId], references: [id])
-  userId              String                      
+  userId              String
   serverType          ServerType                  @relation(fields: [serverTypeId], references: [id])
-  serverTypeId        String                      
+  serverTypeId        String
   server              Server                      @relation(fields: [serverId], references: [id])
-  serverId            String                      
+  serverId            String
   serverName          String?                     @db.LongText
   product             Product[]
-  productId           String                      
+  productId           String
 }
 
 model ServerType {
@@ -138,7 +138,7 @@ model ServerType {
 model Server {
   id           String      @id @default(uuid())
   typeOfSever  ServerType  @relation(fields: [serverTypeId], references: [id])
-  serverTypeId String      
+  serverTypeId String
   IP           String      @db.LongText
   port         String      @db.LongText
   apiKey       String      @db.LongText
@@ -146,29 +146,29 @@ model Server {
 }
 
 model Product {
-  id               String         @id @default(uuid())
-  name             String         @db.LongText
-  description      String         @db.LongText
-  image            String         @db.LongText
-  type             ETypeOfProduct
-  productContent   Json
-  serverType       ServerType     @relation(fields: [serverTypeId], references: [id])
-  serverTypeId     String         
-  amount           Int
-  isChangeAmount   Boolean        @default(false)
-  price            Int
-  discount         Int?
-  saleDiscount     Int?
-  saleDelaySeconds Int?
-  cooldownDate     DateTime?
+  id                        String         @id @default(uuid())
+  name                      String         @db.LongText
+  description               String         @db.LongText
+  image                     String         @db.LongText
+  type                      ETypeOfProduct
+  productContent            Json
+  serverType                ServerType     @relation(fields: [serverTypeId], references: [id])
+  serverTypeId              String
+  amount                    Int
+  isChangeAmount            Boolean        @default(false)
+  price                     Int
+  discount                  Int?
+  saleDiscount              Int?
+  saleDelaySeconds          Int?
+  cooldownDate              DateTime?
   reactiviationDelaySeconds Int
-  saleDeadline     DateTime?
-  maxCountOfSale   Int?
-  hidden           Boolean        @default(false)
-  number           Int?
-  autoactivation   Boolean        @default(false)
-  Purchase         Purchase[]
-  Inventory        Inventory[]
+  saleDeadline              DateTime?
+  maxCountOfSale            Int?
+  hidden                    Boolean        @default(false)
+  number                    Int?
+  autoactivation            Boolean        @default(false)
+  Purchase                  Purchase[]
+  Inventory                 Inventory[]
 }
 
 model Promocodes {
@@ -207,8 +207,8 @@ model urlSettings {
 }
 
 model Token {
-  id       String     @id @default(uuid())
-  token String @db.LongText
-  User User? @relation(fields: [userId], references: [id])
+  id     String @id @default(uuid())
+  token  String @db.LongText
+  User   User?  @relation(fields: [userId], references: [id])
   userId String
 }

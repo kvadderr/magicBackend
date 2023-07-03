@@ -7,7 +7,13 @@ import { PassportModule } from '@nestjs/passport';
 import { TokenModule } from './token/token.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule,PassportModule.register({ defaultStrategy: 'steam' }), TokenModule,],
+  imports: [
+    PrismaModule,
+    UsersModule,
+    AuthModule,
+    PassportModule.register({ defaultStrategy: 'steam' }),
+    TokenModule,
+  ],
   controllers: [],
   providers: [],
 })
