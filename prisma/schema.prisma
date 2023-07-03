@@ -161,6 +161,7 @@ model Product {
   saleDiscount     Int?
   saleDelaySeconds Int?
   cooldownDate     DateTime?
+  reactiviationDelaySeconds Int
   saleDeadline     DateTime?
   maxCountOfSale   Int?
   hidden           Boolean        @default(false)
