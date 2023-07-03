@@ -1,70 +1,134 @@
 import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import {UsersService} from "../users/users.service";
-import {JwtService} from "@nestjs/jwt";
-import {CreateUserDto, LoginUserDto} from "../users/dto/create-user.dto";
-import {JwtPayload} from "./jwt.strategy";
 import {PrismaService} from "../prisma/prisma.service";
 import {User} from '@prisma/client'
-import {hash} from "bcrypt";
-// import {User} from "../users/user.entity";
+import { HttpService } from '@nestjs/axios';
+import { TokenService } from 'src/token/token.service';
+import { ResponseUserDto } from './dto/responseUser.dto';
+import { JwtPayload } from './dto/jwtPayload.dto';
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly prisma: PrismaService,
-        private readonly jwtService: JwtService,
-        private readonly usersService: UsersService,
+        private readonly userService: UsersService,
+        private readonly tokenService: TokenService,
+        private readonly httpService: HttpService
     ) {}
 
-    async register(userDto: CreateUserDto):
-        Promise<RegistrationStatus> {
-        let status: RegistrationStatus = {
-            success: true,
-            message: "ACCOUNT_CREATE_SUCCESS",
-        };
-
-        try {
-            status.data = await this.usersService.create(userDto);
-        } catch (err) {
-            status = {
-                success: false,
-                message: err,
-            };
-        }
-        return status;
-    }
-
-    async login(loginUserDto: LoginUserDto): Promise<any> {
-        // find user in db
-        const user = await 
-             this.usersService.findByLogin(loginUserDto);
-
-        // generate and sign token
-        const token = this._createToken(user);
-
+    async validateSteamAccount(identifier: string): Promise<any> {
+        console.log(identifier);
+        
+        // Здесь вы должны реализовать логику проверки и сохранения пользователя
+        // на основе полученных данных от Steam
+        // Например, вы можете сохранить идентификатор Steam в базу данных
+        // и возвращать соответствующего пользователя
         return {
-            ...token,
-            data: user
+          steamId: identifier,
+          // Другие данные пользователя
         };
-    }
+      }
 
-    private _createToken({ email }): any {
-        const user: JwtPayload = { email };
-        const Authorization = this.jwtService.sign(user);
-        return {
-            expiresIn: process.env.EXPIRESIN,
-            Authorization,
-        };
-    }
-
-    async validateUser(payload: JwtPayload): Promise<any> {
-        const user = await this.usersService.findOne(payload);
+      async validateUser(payload: JwtPayload): Promise<any> {
+        const user = await this.userService.findById(payload.id);
         if (!user) {
             throw new HttpException("INVALID_TOKEN", 
                HttpStatus.UNAUTHORIZED);
         }
         return user;
     }
+
+    async signUpIn(steamId: String) {
+         //* ExampleL {"steamId":"https://steamcommunity.com/openid/id/76561198075427441"}
+        const id = steamId.split('/')[5]
+        
+       const candidate = await this.userService.findBySteamId(id)
+
+        if (!candidate){
+            const user = await this.userService.create(id)
+            const tokens = this.tokenService.generateTokens({
+                id: user.id,
+                steamId: user.steamID,
+                role: user.role
+              })
+          
+              await this.tokenService.saveToken({
+                userId: user.id,
+                token: tokens.refreshToken,
+              })
+          
+              return {
+                accessToken: tokens.accessToken,
+                refreshToken: tokens.refreshToken,
+                user: new ResponseUserDto(user),
+              }
+        }
+
+        console.log(candidate);
+        
+
+        const tokens = this.tokenService.generateTokens({
+          id: candidate.id,
+          steamId: candidate.steamID,
+          role: candidate.role
+        })
+    
+        await this.tokenService.saveToken({
+          userId: candidate.id,
+          token: tokens.refreshToken,
+        })
+    
+        return {
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          user: new ResponseUserDto(candidate),
+        }
+        
+    }
+
+    async refresh(token: string) {
+        const userData = await this.tokenService.validateRefreshToken(
+          token
+        )
+    
+        if (!userData) {
+          throw new HttpException(
+            'Пользователь не авторизован',
+            HttpStatus.UNAUTHORIZED
+          )
+        }
+    
+        const user = await this.userService.findById(userData.id)
+    
+        const tokens = this.tokenService.generateTokens({
+          id: user.id,
+        steamId: user.steamId,
+        role: user.role
+        })
+    
+        await this.tokenService.saveToken({
+          userId: user.id,
+          token: tokens.refreshToken,
+        })
+    
+        return {
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          user: new ResponseUserDto(user),
+        }
+      }
+
+      async logout(refreshToken: string) {
+        const token = await this.tokenService.deleteToken(refreshToken)
+        if (token) {
+          return { message: 'Вы успешно разлогинены' }
+        } else {
+          throw new HttpException('Токен не существует', HttpStatus.BAD_REQUEST)
+        }
+      }
+    
+      
+    
 }
 
 export interface RegistrationStatus{

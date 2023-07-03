@@ -4,88 +4,41 @@ import { compare, hash } from 'bcrypt';
 import { CreateUserDto, LoginUserDto, UpdatePasswordDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { HttpService } from '@nestjs/axios';
+import { AxiosError } from 'axios';
+import { firstValueFrom, catchError } from 'rxjs';
+import { STEAM_API_KEY } from 'src/core/config';
 
 @Injectable()
 export class UsersService {
-  constructor (private prisma: PrismaService) {}
+  constructor (private prisma: PrismaService,private readonly httpService: HttpService) {}
 
-  async updatePassword (payload: UpdatePasswordDto, id: string) {
+  async create(id: string
+    ) {
     try {
-      const candidate = await this.prisma.user.findUnique({
-        where: {
-          id
-        }
-      });
+      const userSteamData = await firstValueFrom( 
+        this.httpService.get(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${STEAM_API_KEY}&steamids=${id}`).pipe(
+        catchError((error: AxiosError) => {
+          console.error(error.response.data);
+          throw 'An error happened!';
+        })))
+    
+    console.log(userSteamData.data.response.players[0]);
+    const mainData = userSteamData.data.response.players[0]
 
-      if (!candidate) {
-        throw new HttpException('User with provided id does not exist.', HttpStatus.UNAUTHORIZED)
-      }
+    const config = await this.prisma.baseSettings.findFirst()
+    
 
-      const areEqual = await compare(payload.old_password, candidate.password);
-
-      if (!areEqual) {
-        throw new HttpException('Invalid credentials.', HttpStatus.UNAUTHORIZED);
-      }
-
-      return await this.prisma.user.update({
-        where: {
-          id
-        }, 
+    const newUser = await this.prisma.user.create({
         data: {
-          password: await hash(payload.new_password, 7)
+            steamName: mainData.personaname,
+            steamID: mainData.steamid,
+            steamAvatar: mainData.avatarfull,
+            mainBalance: config.startBalance,
         }
-      })
-    } catch (error) {
-      console.error(error.message);
-      throw error;
-    }
-  }
+    })
 
-  async create(payload: CreateUserDto) {
-    try {
-      const candidate = await this.prisma.user.findUnique({
-        where: {
-          email: payload.email
-        }
-      })
-
-      if (candidate) {
-        throw new HttpException('User with provided credentials already exists.', HttpStatus.CONFLICT);
-      }
-
-      return await this.prisma.user.create({
-        data: {
-          ...(payload),
-          password: await hash(payload.password, 7)
-        }
-      });
-    } catch (error) {
-      console.error(error.message);
-      throw error;
-    }
-  }
-
-  async findByLogin({ email, password }: LoginUserDto) {
-    try {
-      const candidate = await this.prisma.user.findUnique({
-        where: {
-          email
-        }
-      });
-
-      if (!candidate) {
-        throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
-      }
-
-      const areEqual = await compare(password, candidate.password);
-
-      if (!areEqual) {
-        throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
-      }
-
-      const { password: p, ...rest} = candidate;
-
-      return candidate;
+    return newUser
     } catch (error) {
       console.error(error.message);
       throw error;
@@ -101,16 +54,14 @@ export class UsersService {
     }
   }
 
-  findOne({ email }: any) {
+  async findBySteamId(id : string) {
     try {
-      const candidate = this.prisma.user.findFirst({
+      const candidate = await this.prisma.user.findFirst({
         where: {
-          email
+            steamID: id
         }
-      });
-      if (!candidate) {
-        throw new Error('User with provided id does not exist.');
-      }
+    })
+
       return candidate;
     } catch (error) {
       console.error(error.message);
@@ -118,54 +69,24 @@ export class UsersService {
     }
   }
 
-  update(id: string, updateUserDto: UpdateUserDto) {
+  async findById(id: string) {
     try {
-      if (!id) {
-        throw new Error('No user id provided.')
-      }
-      const candidate = this.prisma.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: {
           id
         }
       })
-      if (!candidate) {
-        throw new Error('User with provided id does not exist.');
-      }
 
-      return this.prisma.user.update({
-        where: {
-          id
-        },
-        data: updateUserDto,
-      })
+      if (!user) {
+          throw new HttpException('User with provided id does not exist.', HttpStatus.BAD_REQUEST)
+        }
+
+      return user
     } catch (error) {
-      console.log(error.message);
+      console.error(error.message);
       return error;
     }
   }
 
-  remove(id: string) {
-    try {
-      if (!id) {
-        throw new Error('No user id provided.')
-      }
-      const candidate = this.prisma.user.findUnique({
-        where: {
-          id
-        }
-      })
-      if (!candidate) {
-        throw new Error('User with provided id does not exist.');
-      }
-
-      return this.prisma.user.delete({
-        where: {
-          id
-        }
-      })
-    } catch (error) {
-      console.error(error.message)
-      return error
-    }
-  }
+  
 }
