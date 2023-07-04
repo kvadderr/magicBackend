@@ -1,0 +1,43 @@
+-- AlterTable
+ALTER TABLE `Inventory` MODIFY `serverName` LONGTEXT NULL;
+
+-- AlterTable
+ALTER TABLE `Product` MODIFY `name` LONGTEXT NOT NULL,
+    MODIFY `image` LONGTEXT NOT NULL;
+
+-- AlterTable
+ALTER TABLE `Promocodes` MODIFY `name` LONGTEXT NOT NULL,
+    MODIFY `groupId` LONGTEXT NOT NULL,
+    MODIFY `itemSet` LONGTEXT NULL;
+
+-- AlterTable
+ALTER TABLE `Server` MODIFY `IP` LONGTEXT NOT NULL,
+    MODIFY `port` LONGTEXT NOT NULL,
+    MODIFY `apiKey` LONGTEXT NOT NULL;
+
+-- AlterTable
+ALTER TABLE `ServerType` MODIFY `name` LONGTEXT NOT NULL,
+    MODIFY `description` LONGTEXT NOT NULL;
+
+-- AlterTable
+ALTER TABLE `Transaction` MODIFY `method` LONGTEXT NOT NULL;
+
+-- AlterTable
+ALTER TABLE `User` MODIFY `steamName` LONGTEXT NOT NULL,
+    MODIFY `steamID` LONGTEXT NOT NULL,
+    MODIFY `steamAvatar` LONGTEXT NOT NULL,
+    MODIFY `discordLink` LONGTEXT NULL,
+    MODIFY `VKLink` LONGTEXT NULL,
+    MODIFY `TGLink` LONGTEXT NULL;
+
+-- AlterTable
+ALTER TABLE `baseSettings` MODIFY `header` LONGTEXT NOT NULL,
+    MODIFY `mainPage` LONGTEXT NOT NULL,
+    MODIFY `apiKey` LONGTEXT NOT NULL,
+    MODIFY `IPWhiteList` LONGTEXT NOT NULL;
+
+-- AlterTable
+ALTER TABLE `urlSettings` MODIFY `icon` LONGTEXT NOT NULL,
+    MODIFY `url` LONGTEXT NOT NULL,
+    MODIFY `name` LONGTEXT NULL,
+    MODIFY `sections` LONGTEXT NULL;

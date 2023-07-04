@@ -1,41 +1,78 @@
 import {
-    Body,
-    Controller,
-    HttpException,
-    HttpStatus,
-    Post,
-    UseGuards,
-    UseInterceptors
+  Body,
+  Controller,
+  Post,
+  Get,
+  UseGuards,
+  Req,
+  Res,
 } from '@nestjs/common';
-import {AuthService, RegistrationSeederStatus, RegistrationStatus} from "./auth.service";
-import {CreateUserDto, LoginUserDto} from "../users/dto/create-user.dto";
-import {ApiBearerAuth, ApiSecurity, ApiTags} from "@nestjs/swagger";
-
-
+import { AuthService } from './auth.service';
+import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { HttpService } from '@nestjs/axios';
+import { AuthGuard } from '@nestjs/passport';
+import { Request, Response } from 'express';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-    constructor(
-        private readonly authService: AuthService,
-        ) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly httpService: HttpService,
+  ) {}
 
-    @Post('register')
-    public async register(@Body() createUserDto: CreateUserDto,  ): 
-       Promise<RegistrationStatus> {
-        const result:RegistrationStatus = await 
-              this.authService.register(createUserDto,);
-        if (!result.success) {
-            throw new HttpException(result.message,  
-               HttpStatus.BAD_REQUEST);
-        }
-        return result;
-    }
+  @Get('steam')
+  @UseGuards(AuthGuard('steam'))
+  async redirectToSteamAuth(): Promise<void> {}
 
-    @Post('login')
-    public async login(@Body() loginUserDto: LoginUserDto): 
-       Promise<any> {
-        return await this.authService.login(loginUserDto);
-    }
+  @Get('steam/return')
+  @UseGuards(AuthGuard('steam'))
+  async handleSteamAuthCallback(
+    @Req() req,
+    @Res() res: Response,
+  ): Promise<any> {
+    const data = await this.authService.signUpIn(req.user.steamId);
+    console.log(data);
 
+    return res
+      .cookie('refreshToken', data.refreshToken, {
+        httpOnly: true,
+        maxAge: 30 * 24 * 60 * 1000,
+        sameSite: 'lax',
+      })
+      .json({
+        accessToken: data.accessToken,
+        user: data.user,
+      });
+  }
+
+  @Get('/refresh')
+  async refresh(@Req() req: Request, @Res() res: Response) {
+    const data = await this.authService.refresh(req.cookies.refreshToken);
+
+    return res
+      .cookie('refreshToken', data.refreshToken, {
+        httpOnly: true,
+        maxAge: 30 * 24 * 60 * 1000,
+        sameSite: 'lax',
+      })
+      .json({
+        accessToken: data.accessToken,
+        user: data.user,
+      });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('/logout')
+  async logout(@Res() res: Response, @Req() req: Request) {
+    const data = await this.authService.logout(req.cookies.refreshToken);
+
+    return res
+      .cookie('refreshToken', '', {
+        httpOnly: true,
+        maxAge: 30 * 24 * 60 * 1000,
+        sameSite: 'lax',
+      })
+      .json(data);
+  }
 }
