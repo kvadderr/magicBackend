@@ -48,7 +48,7 @@ model User {
   steamName     String    @db.LongText
   steamID       String    @unique
   email         String?   @unique
-  steamAvatar   String    @db.LongText //? фронт отдельно запрашивает ее или мы храним у себя?
+  steamAvatar   String    @db.LongText
   mainBalance   Int
   bonusBalance  Int       @default(0)
   firstDateAuth DateTime  @default(now())
@@ -62,13 +62,15 @@ model User {
   createdAt     DateTime  @default(now())
   lastActivity  DateTime?
 
-  role              USER_ROLE     @default(CLIENT)
-  Transaction       Transaction[]
-  Purchase          Purchase[]
-  TransfersSender   Transfers[]   @relation("sender")
-  TransfersReceiver Transfers[]   @relation("receiver")
-  Inventory         Inventory[]
-  Tokens            Token[]
+  role                         USER_ROLE                      @default(CLIENT)
+  Transaction                  Transaction[]
+  Purchase                     Purchase[]
+  TransfersSender              Transfers[]                    @relation("sender")
+  TransfersReceiver            Transfers[]                    @relation("receiver")
+  Inventory                    Inventory[]
+  Tokens                       Token[]
+  ProductMetainfoForStore      ProductMetainfoForStore[]
+  ProductMetainfoForActivation ProductMetainfoForActivation[]
 }
 
 model Transaction {
@@ -146,29 +148,32 @@ model Server {
 }
 
 model Product {
-  id                        String         @id @default(uuid())
-  name                      String         @db.LongText
-  description               String         @db.LongText
-  image                     String         @db.LongText
-  type                      ETypeOfProduct
-  productContent            Json
-  serverType                ServerType     @relation(fields: [serverTypeId], references: [id])
-  serverTypeId              String
-  amount                    Int
-  isChangeAmount            Boolean        @default(false)
-  price                     Int
-  discount                  Int?
-  saleDiscount              Int?
-  saleDelaySeconds          Int?
-  cooldownDate              DateTime?
-  reactiviationDelaySeconds Int
-  saleDeadline              DateTime?
-  maxCountOfSale            Int?
-  hidden                    Boolean        @default(false)
-  number                    Int?
-  autoactivation            Boolean        @default(false)
-  Purchase                  Purchase[]
-  Inventory                 Inventory[]
+  id                           String                         @id @default(uuid())
+  name                         String                         @db.LongText
+  description                  String                         @db.LongText
+  image                        String                         @db.LongText
+  type                         ETypeOfProduct
+  productContent               Json
+  serverType                   ServerType                     @relation(fields: [serverTypeId], references: [id])
+  serverTypeId                 String
+  amount                       Int
+  isChangeAmount               Boolean                        @default(false)
+  price                        Int
+  discount                     Int?
+  saleDiscount                 Int?
+  saleDelaySeconds             Int?
+  cooldownDate                 DateTime?
+  reactiviationDelaySeconds    Int
+  saleDeadline                 DateTime?
+  maxCountOfSale               Int?
+  hidden                       Boolean                        @default(false)
+  number                       Int?
+  autoactivation               Boolean                        @default(false)
+  activationDelaySeconds       Int
+  Purchase                     Purchase[]
+  Inventory                    Inventory[]
+  ProductMetainfoForStore      ProductMetainfoForStore[]
+  ProductMetainfoForActivation ProductMetainfoForActivation[]
 }
 
 model Promocodes {
@@ -199,6 +204,7 @@ model baseSettings {
 model urlSettings {
   id       String     @id @default(uuid())
   icon     String     @db.LongText
+  text     String     @db.LongText
   typeUrl  ETypeOfURL
   url      String     @db.LongText
   hidden   Boolean    @default(false)
@@ -211,4 +217,22 @@ model Token {
   token  String @db.LongText
   User   User?  @relation(fields: [userId], references: [id])
   userId String
+}
+
+model ProductMetainfoForStore {
+  id        String   @id @default(uuid())
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String
+  product   Product? @relation(fields: [productId], references: [id])
+  productId String
+  endDate   DateTime
+}
+
+model ProductMetainfoForActivation {
+  id        String   @id @default(uuid())
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String
+  product   Product? @relation(fields: [productId], references: [id])
+  productId String
+  endDate   DateTime
 }
