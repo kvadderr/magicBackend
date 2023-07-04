@@ -7,5 +7,7 @@ export const STEAM_API_KEY =
 export const BASE_STEAM_API_URL =
   process.env.BASE_STEAM_API_URL || 'https://api.steampowered.com/';
 export const BASE_RETURN_URL =
-  process.env.BASE_RETURN_URL || `http://localhost:${PORT}/auth/steam/return`;
-export const BASE_REALM = process.env.BASE_REALM || `http://localhost:${PORT}/`;
+  process.env.BASE_RETURN_URL ||
+  `http://194.67.113.110:${PORT}/auth/steam/return`;
+export const BASE_REALM =
+  process.env.BASE_REALM || `http://194.67.113.110:${PORT}/`;
