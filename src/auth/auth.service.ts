@@ -17,8 +17,6 @@ export class AuthService {
   ) {}
 
   async validateSteamAccount(identifier: string): Promise<any> {
-    console.log(identifier);
-
     // Здесь вы должны реализовать логику проверки и сохранения пользователя
     // на основе полученных данных от Steam
     // Например, вы можете сохранить идентификатор Steam в базу данных
@@ -62,8 +60,6 @@ export class AuthService {
         user: new ResponseUserDto(user),
       };
     }
-
-    console.log(candidate);
 
     const tokens = this.tokenService.generateTokens({
       id: candidate.id,
