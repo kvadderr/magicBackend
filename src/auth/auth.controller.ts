@@ -78,7 +78,15 @@ export class AuthController {
   }
 
   @Get('/openId/:id')
-  async getUserData(@Param('id') id: string) {
+  async getUserData(@Param('id') id: string, @Res() res: Response) {
     const data = await this.authService.getByOpenId(id);
+
+    return res
+      .cookie('refreshToken', '', {
+        httpOnly: true,
+        maxAge: 30 * 24 * 60 * 1000,
+        sameSite: 'lax',
+      })
+      .json(data);
   }
 }
