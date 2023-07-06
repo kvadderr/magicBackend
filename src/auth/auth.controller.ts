@@ -94,7 +94,4 @@ export class AuthController {
       })
       .json(data);
   }
-
-  @Get('/whoAmI/:token')
-  async whoAmI(@Param('token') token: string) {}
 }

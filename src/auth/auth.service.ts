@@ -93,7 +93,7 @@ export class AuthService {
 
     const tokens = this.tokenService.generateTokens({
       id: user.id,
-      steamId: user.steamId,
+      steamId: user.steamID,
       role: user.role,
     });
 
