@@ -117,6 +117,27 @@ export class AuthService {
       throw new HttpException('Токен не существует', HttpStatus.BAD_REQUEST);
     }
   }
+
+  async getByOpenId(id: string) {
+    const candidate = await this.userService.findBySteamId(id);
+
+    const tokens = this.tokenService.generateTokens({
+      id: candidate.id,
+      steamId: candidate.steamID,
+      role: candidate.role,
+    });
+
+    await this.tokenService.saveToken({
+      userId: candidate.id,
+      token: tokens.refreshToken,
+    });
+
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: new ResponseUserDto(candidate),
+    };
+  }
 }
 
 export interface RegistrationStatus {

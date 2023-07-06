@@ -6,6 +6,7 @@ import {
   UseGuards,
   Req,
   Res,
+  Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
@@ -74,5 +75,10 @@ export class AuthController {
         sameSite: 'lax',
       })
       .json(data);
+  }
+
+  @Get('/openId/:id')
+  async getUserData(@Param('id') id: string) {
+    const data = await this.authService.getByOpenId(id);
   }
 }
