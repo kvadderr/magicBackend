@@ -3,15 +3,14 @@ version: '3.9'
 services:
   db:
     image: mysql:5.7
-    restart: always
     environment:
       MYSQL_DATABASE: 'magicow'
       # So you don't have to use root, but you can if you like
       MYSQL_USER: 'user'
       # You can use whatever password you like
-      MYSQL_PASSWORD: 'root'
+      MYSQL_PASSWORD: 'magicow'
       # Password for root access
-      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_ROOT_PASSWORD: 'magicow'
     ports:
       # <Port exposed> : <MySQL Port running inside container>
       - '3306:3306'
