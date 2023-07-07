@@ -57,7 +57,7 @@ model User {
   experience    Int       @default(0)
   sumOfDeposits Int       @default(0)
   sumOfRefunds  Int       @default(0)
-  discordLink   String?   @db.LongText //? как привязывать все это?
+  discordLink   String?   @db.LongText
   VKLink        String?   @db.LongText
   TGLink        String?   @db.LongText
   createdAt     DateTime  @default(now())
@@ -147,30 +147,33 @@ model Server {
 }
 
 model Product {
-  id                        String         @id @default(uuid())
-  name                      String         @db.LongText
-  description               String         @db.LongText
-  image                     String         @db.LongText
-  type                      ETypeOfProduct
-  productContent            Json
-  serverType                ServerType     @relation(fields: [serverTypeId], references: [id])
-  serverTypeId              String
-  amount                    Int
-  isChangeAmount            Boolean        @default(false)
-  price                     Int
-  discount                  Int?
-  saleDiscount              Int?
-  saleDelaySeconds          Int?
-  cooldownDate              DateTime?
-  reactiviationDelaySeconds Int
-  saleDeadline              DateTime?
-  maxCountOfSale            Int?
-  hidden                    Boolean        @default(false)
-  number                    Int?
-  autoactivation            Boolean        @default(false)
-  activationDelaySeconds    Int
-  Purchase                  Purchase[]
-  Inventory                 Inventory[]
+  id             String         @id @default(uuid())
+  name           String         @db.LongText
+  description    String?        @db.LongText
+  image          String?        @db.LongText
+  type           ETypeOfProduct @default(GAME_ITEM)
+  productContent Json?
+  serverType     ServerType?    @relation(fields: [serverTypeId], references: [id])
+  serverTypeId   String?
+  amount         Int            @default(1)
+  isChangeAmount Boolean        @default(false)
+  price          Int
+  discount       Int?
+  saleDiscount   Int?
+  saleDeadline   DateTime?
+  maxCountOfSale Int?
+  hidden         Boolean        @default(false)
+  number         Int?
+  autoactivation Boolean        @default(false)
+
+  isBackground      Boolean @default(false)
+  previewImage      String?
+  blockSize         Int     @default(1)
+  label             Int     @default(1)
+  isBackgroundImage Boolean @default(false)
+
+  Purchase  Purchase[]
+  Inventory Inventory[]
 }
 
 model Promocodes {
@@ -196,6 +199,7 @@ model baseSettings {
   mainPage     String  @db.LongText
   apiKey       String  @db.LongText
   IPWhiteList  String  @db.LongText
+  panelURLs    Json?
 }
 
 model urlSettings {

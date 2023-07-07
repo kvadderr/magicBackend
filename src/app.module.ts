@@ -5,6 +5,8 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { TokenModule } from './token/token.module';
+import { ProfileModule } from './profile/profile.module';
+import { FileModule } from './file/file.module';
 
 @Module({
   imports: [
@@ -13,6 +15,8 @@ import { TokenModule } from './token/token.module';
     AuthModule,
     PassportModule.register({ defaultStrategy: 'steam' }),
     TokenModule,
+    ProfileModule,
+    FileModule,
   ],
   controllers: [],
   providers: [],
