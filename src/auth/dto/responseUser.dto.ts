@@ -12,6 +12,6 @@ export class ResponseUserDto {
     this.steamId = model.steamID;
     this.avatar = model.steamAvatar;
     this.balance = model.mainBalance;
-    this.name = model.name;
+    this.name = model.steamName;
   }
 }

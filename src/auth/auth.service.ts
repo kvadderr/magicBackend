@@ -35,9 +35,8 @@ export class AuthService {
     return user;
   }
 
-  async signUpIn(steamId: string) {
+  async signUpIn(id: string) {
     //* ExampleL {"steamId":"https://steamcommunity.com/openid/id/76561198075427441"}
-    const id = steamId.split('/')[5];
 
     const candidate = await this.userService.findBySteamId(id);
 
