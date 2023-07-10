@@ -1,5 +1,5 @@
 export class JwtPayload {
-  readonly id: string;
+  readonly id: number;
   readonly steamId: string;
   readonly role: string;
 }

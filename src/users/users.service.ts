@@ -120,7 +120,7 @@ export class UsersService {
     }
   }
 
-  async findById(id: string): Promise<User> {
+  async findById(id: number): Promise<User> {
     try {
       const user = await this.prisma.user.findUnique({
         where: {
