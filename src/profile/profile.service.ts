@@ -20,13 +20,10 @@ export class ProfileService {
     return this.prisma.inventory.findMany({
       where: {
         userId: user.id,
+        status: 'INVENTORY',
       },
       include: {
-        product: {
-          include: {
-            Purchase: true,
-          },
-        },
+        product: true,
       },
     });
   }

@@ -121,7 +121,7 @@ model Inventory {
   server              Server                      @relation(fields: [serverId], references: [id])
   serverId            String
   serverName          String?                     @db.LongText
-  product             Product[]
+  product             Product                     @relation(fields: [productId], references: [id])
   productId           String
 }
 
@@ -143,6 +143,7 @@ model Server {
   IP           String      @db.LongText
   port         String      @db.LongText
   apiKey       String      @db.LongText
+  name         String      @default("SERVER")
   Inventory    Inventory[]
 }
 
