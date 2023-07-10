@@ -84,7 +84,7 @@ export class AuthController {
     if (!id) {
       throw new HttpException('id is not provided', HttpStatus.BAD_REQUEST);
     }
-    const data = await this.authService.getByOpenId(id);
+    const data = await this.authService.signUpIn(id);
 
     return res
       .cookie('refreshToken', '', {
