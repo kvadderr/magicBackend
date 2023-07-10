@@ -44,7 +44,7 @@ enum ETypeOfURL {
 }
 
 model User {
-  id String @id @default(uuid())
+  id Int @id @default(autoincrement())
 
   steamName     String    @db.LongText
   steamID       String    @unique
@@ -76,7 +76,7 @@ model Transaction {
   id String @id @default(uuid())
 
   user      User?           @relation(fields: [userId], references: [id])
-  userId    String?
+  userId    Int?
   method    String          @db.LongText
   amount    Int
   createdAt DateTime        @default(now())
@@ -86,7 +86,7 @@ model Transaction {
 model Purchase {
   id               String      @id @default(uuid())
   user             User?       @relation(fields: [userId], references: [id])
-  userId           String?
+  userId           Int?
   amount           Int
   createdAt        DateTime    @default(now())
   lostMainBalance  Int
@@ -98,11 +98,11 @@ model Purchase {
 }
 
 model Transfers {
-  id         String   @id @default(uuid())
+  id         Int      @id @default(autoincrement())
   sender     User     @relation("sender", fields: [senderId], references: [id])
   receiver   User     @relation("receiver", fields: [receiverId], references: [id])
-  senderId   String
-  receiverId String
+  senderId   Int
+  receiverId Int
   amount     Int
   createdAt  DateTime @default(now())
 }
@@ -115,7 +115,7 @@ model Inventory {
   purchase            Purchase                    @relation(fields: [historyOfPurchaseId], references: [id])
   historyOfPurchaseId String
   user                User                        @relation(fields: [userId], references: [id])
-  userId              String
+  userId              Int
   serverType          ServerType                  @relation(fields: [serverTypeId], references: [id])
   serverTypeId        String
   server              Server                      @relation(fields: [serverId], references: [id])
@@ -178,7 +178,7 @@ model Product {
 }
 
 model Promocodes {
-  id                String   @id @default(uuid())
+  id                Int      @id @default(autoincrement())
   name              String   @db.LongText
   countOfActivation Int
   createdAt         DateTime @default(now())
@@ -218,5 +218,5 @@ model Token {
   id     String @id @default(uuid())
   token  String @db.LongText
   User   User?  @relation(fields: [userId], references: [id])
-  userId String
+  userId Int
 }
