@@ -22,6 +22,7 @@ export class FileController {
             image: arrayOfItems[i].image,
             name: arrayOfItems[i].market_name,
             price: Math.round(arrayOfItems[i].priceByCurrency.RUB.safe),
+            nameID: arrayOfItems[i].nameID,
           },
         });
       }

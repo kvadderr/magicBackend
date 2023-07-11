@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { retry } from 'rxjs';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TokenService } from 'src/token/token.service';
@@ -15,6 +15,13 @@ export class ProfileService {
   async getInventory(token: string) {
     try {
       const isUser = await this.tokenService.validateAccessToken(token);
+
+      if (!isUser) {
+        throw new HttpException(
+          'Пользователь не найден',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
 
       const user = await this.userSerivce.findById(isUser.id);
 
@@ -40,6 +47,13 @@ export class ProfileService {
   ) {
     try {
       const isUser = await this.tokenService.validateAccessToken(token);
+
+      if (!isUser) {
+        throw new HttpException(
+          'Пользователь не найден',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
 
       const user = await this.userSerivce.findById(isUser.id);
 
@@ -97,12 +111,100 @@ export class ProfileService {
     try {
       const isUser = await this.tokenService.validateAccessToken(token);
 
+      if (!isUser) {
+        throw new HttpException(
+          'Пользователь не найден',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
       const user = await this.userSerivce.findById(isUser.id);
 
       return { balance: user.mainBalance + user.bonusBalance };
     } catch (error) {
       console.error(error);
       throw error;
+    }
+  }
+
+  async undoPurchase(token: string, inventoryId: number) {
+    try {
+      const isUser = await this.tokenService.validateAccessToken(token);
+
+      if (!isUser) {
+        throw new HttpException(
+          'Пользователь не найден',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const user = await this.userSerivce.findById(isUser.id);
+
+      const removeItem = await this.prisma.inventory.findUnique({
+        where: {
+          id: inventoryId,
+        },
+        include: {
+          product: true,
+        },
+      });
+
+      if (removeItem.status == 'ON_SERVER') {
+        throw new HttpException(
+          'Предмет уже активирован и не может быть возвращен',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      await this.prisma.$transaction(async (tx) => {
+        const refundMoney = await tx.purchase.aggregate({
+          where: {
+            productId: removeItem.id,
+            refund: false,
+            userId: user.id,
+          },
+          _sum: {
+            lostBonusBalance: true,
+            lostMainBalance: true,
+          },
+        });
+
+        const refundPurchase = await tx.purchase.create({
+          data: {
+            userId: user.id,
+            amount: removeItem.amount,
+            refund: true,
+            productId: removeItem.productId,
+            lostBonusBalance: refundMoney._sum.lostMainBalance,
+            lostMainBalance: refundMoney._sum.lostBonusBalance,
+          },
+        });
+        await tx.inventory.delete({
+          where: {
+            id: removeItem.id,
+          },
+        });
+        await tx.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            mainBalance: user.mainBalance + refundMoney._sum.lostMainBalance,
+            bonusBalance: user.bonusBalance + refundMoney._sum.lostBonusBalance,
+          },
+        });
+      });
+      return {
+        status: 'Success',
+        data: 'Возврат успешно произведен',
+      };
+    } catch (error) {
+      console.log(error);
+
+      return {
+        status: 'Error',
+        message: error.message,
+      };
     }
   }
 }
