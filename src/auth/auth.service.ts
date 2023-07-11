@@ -17,8 +17,6 @@ export class AuthService {
   ) {}
 
   async validateSteamAccount(identifier: string): Promise<any> {
-    console.log(identifier);
-
     // Здесь вы должны реализовать логику проверки и сохранения пользователя
     // на основе полученных данных от Steam
     // Например, вы можете сохранить идентификатор Steam в базу данных
@@ -37,9 +35,8 @@ export class AuthService {
     return user;
   }
 
-  async signUpIn(steamId: string) {
+  async signUpIn(id: string) {
     //* ExampleL {"steamId":"https://steamcommunity.com/openid/id/76561198075427441"}
-    const id = steamId.split('/')[5];
 
     const candidate = await this.userService.findBySteamId(id);
 
@@ -62,8 +59,6 @@ export class AuthService {
         user: new ResponseUserDto(user),
       };
     }
-
-    console.log(candidate);
 
     const tokens = this.tokenService.generateTokens({
       id: candidate.id,
@@ -97,7 +92,7 @@ export class AuthService {
 
     const tokens = this.tokenService.generateTokens({
       id: user.id,
-      steamId: user.steamId,
+      steamId: user.steamID,
       role: user.role,
     });
 
@@ -120,6 +115,27 @@ export class AuthService {
     } else {
       throw new HttpException('Токен не существует', HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async getByOpenId(id: string) {
+    const candidate = await this.userService.findBySteamId(id);
+
+    const tokens = this.tokenService.generateTokens({
+      id: candidate.id,
+      steamId: candidate.steamID,
+      role: candidate.role,
+    });
+
+    await this.tokenService.saveToken({
+      userId: candidate.id,
+      token: tokens.refreshToken,
+    });
+
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: new ResponseUserDto(candidate),
+    };
   }
 }
 

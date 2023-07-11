@@ -6,6 +6,9 @@ import {
   UseGuards,
   Req,
   Res,
+  Param,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
@@ -66,6 +69,22 @@ export class AuthController {
   @Get('/logout')
   async logout(@Res() res: Response, @Req() req: Request) {
     const data = await this.authService.logout(req.cookies.refreshToken);
+
+    return res
+      .cookie('refreshToken', '', {
+        httpOnly: true,
+        maxAge: 30 * 24 * 60 * 1000,
+        sameSite: 'lax',
+      })
+      .json(data);
+  }
+
+  @Get('/openId/:id')
+  async getUserData(@Param('id') id: string, @Res() res: Response) {
+    if (!id) {
+      throw new HttpException('id is not provided', HttpStatus.BAD_REQUEST);
+    }
+    const data = await this.authService.signUpIn(id);
 
     return res
       .cookie('refreshToken', '', {

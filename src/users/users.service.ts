@@ -12,12 +12,16 @@ import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
 import { firstValueFrom, catchError } from 'rxjs';
 import { STEAM_API_KEY } from 'src/core/config';
+import { TokenService } from 'src/token/token.service';
+import { User } from '@prisma/client';
+import { ResponseUserDto } from 'src/auth/dto/responseUser.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
     private readonly httpService: HttpService,
+    private readonly tokenService: TokenService,
   ) {}
 
   async create(id: string) {
@@ -35,7 +39,6 @@ export class UsersService {
           ),
       );
 
-      console.log(userSteamData.data.response.players[0]);
       const mainData = userSteamData.data.response.players[0];
 
       const config = await this.prisma.baseSettings.findFirst();
@@ -80,7 +83,44 @@ export class UsersService {
     }
   }
 
-  async findById(id: string) {
+  async whoAmI(token: string) {
+    try {
+      const tokenData = await this.tokenService.validateAccessToken(token);
+
+      const user = await this.findById(tokenData.id);
+
+      const userSteamData = await firstValueFrom(
+        this.httpService
+          .get(
+            `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${STEAM_API_KEY}&steamids=${user.steamID}`,
+          )
+          .pipe(
+            catchError((error: AxiosError) => {
+              console.error(error.response.data);
+              throw 'An error happened!';
+            }),
+          ),
+      );
+
+      const mainData = userSteamData.data.response.players[0];
+
+      const updUser = await this.prisma.user.update({
+        where: {
+          steamID: user.steamID,
+        },
+        data: {
+          steamAvatar: mainData.avatarfull,
+          steamName: mainData.personaname,
+        },
+      });
+      return new ResponseUserDto(updUser);
+    } catch (error) {
+      console.error(error.message);
+      return error;
+    }
+  }
+
+  async findById(id: number): Promise<User> {
     try {
       const user = await this.prisma.user.findUnique({
         where: {

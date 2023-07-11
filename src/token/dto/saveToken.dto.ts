@@ -1,4 +1,4 @@
 export class SaveTokenDto {
-  readonly userId: string;
+  readonly userId: number;
   readonly token: string;
 }

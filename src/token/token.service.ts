@@ -113,7 +113,7 @@ export class TokenService {
     return tokenData;
   }
 
-  async deleteAllTokens(userId: string) {
+  async deleteAllTokens(userId: number) {
     const tokenData = await this.prisma.token.deleteMany({
       where: {
         userId,
@@ -132,7 +132,7 @@ export class TokenService {
     return tokenData;
   }
 
-  async deleteDeadTokens(userId: string) {
+  async deleteDeadTokens(userId: number) {
     const tokens = await this.prisma.token.findMany({
       where: {
         userId,
