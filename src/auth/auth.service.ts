@@ -36,46 +36,50 @@ export class AuthService {
   }
 
   async signUpIn(id: string) {
-    //* ExampleL {"steamId":"https://steamcommunity.com/openid/id/76561198075427441"}
+    try {
+      const candidate = await this.userService.findBySteamId(id);
 
-    const candidate = await this.userService.findBySteamId(id);
+      if (!candidate) {
+        const user = await this.userService.create(id);
+        const tokens = this.tokenService.generateTokens({
+          id: user.id,
+          steamId: user.steamID,
+          role: user.role,
+        });
 
-    if (!candidate) {
-      const user = await this.userService.create(id);
+        await this.tokenService.saveToken({
+          userId: user.id,
+          token: tokens.refreshToken,
+        });
+
+        return {
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          user: new ResponseUserDto(user),
+        };
+      }
+
       const tokens = this.tokenService.generateTokens({
-        id: user.id,
-        steamId: user.steamID,
-        role: user.role,
+        id: candidate.id,
+        steamId: candidate.steamID,
+        role: candidate.role,
       });
 
       await this.tokenService.saveToken({
-        userId: user.id,
+        userId: candidate.id,
         token: tokens.refreshToken,
       });
 
       return {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
-        user: new ResponseUserDto(user),
+        user: new ResponseUserDto(candidate),
       };
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
-
-    const tokens = this.tokenService.generateTokens({
-      id: candidate.id,
-      steamId: candidate.steamID,
-      role: candidate.role,
-    });
-
-    await this.tokenService.saveToken({
-      userId: candidate.id,
-      token: tokens.refreshToken,
-    });
-
-    return {
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      user: new ResponseUserDto(candidate),
-    };
+    //* ExampleL {"steamId":"https://steamcommunity.com/openid/id/76561198075427441"}
   }
 
   async refresh(token: string) {

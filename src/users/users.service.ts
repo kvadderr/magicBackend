@@ -64,7 +64,7 @@ export class UsersService {
       return await this.prisma.user.findMany();
     } catch (error) {
       console.error(error.message);
-      return error;
+      throw error;
     }
   }
 
@@ -79,7 +79,7 @@ export class UsersService {
       return candidate;
     } catch (error) {
       console.error(error.message);
-      return error;
+      throw error;
     }
   }
 
@@ -116,7 +116,7 @@ export class UsersService {
       return new ResponseUserDto(updUser);
     } catch (error) {
       console.error(error.message);
-      return error;
+      throw error;
     }
   }
 
@@ -138,7 +138,7 @@ export class UsersService {
       return user;
     } catch (error) {
       console.error(error.message);
-      return error;
+      throw error;
     }
   }
 }

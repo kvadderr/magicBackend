@@ -13,19 +13,24 @@ export class ProfileService {
   ) {}
 
   async getInventory(token: string) {
-    const isUser = await this.tokenService.validateAccessToken(token);
+    try {
+      const isUser = await this.tokenService.validateAccessToken(token);
 
-    const user = await this.userSerivce.findById(isUser.id);
+      const user = await this.userSerivce.findById(isUser.id);
 
-    return this.prisma.inventory.findMany({
-      where: {
-        userId: user.id,
-        status: 'INVENTORY',
-      },
-      include: {
-        product: true,
-      },
-    });
+      return this.prisma.inventory.findMany({
+        where: {
+          userId: user.id,
+          status: 'INVENTORY',
+        },
+        include: {
+          product: true,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 
   async getDetalization(
@@ -33,61 +38,71 @@ export class ProfileService {
     pageNumber: number,
     selectNumber: number,
   ) {
-    const isUser = await this.tokenService.validateAccessToken(token);
+    try {
+      const isUser = await this.tokenService.validateAccessToken(token);
 
-    const user = await this.userSerivce.findById(isUser.id);
+      const user = await this.userSerivce.findById(isUser.id);
 
-    let transactions = await this.prisma.transaction.findMany({
-      where: {
-        userId: user.id,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+      let transactions = await this.prisma.transaction.findMany({
+        where: {
+          userId: user.id,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
 
-    let purchases = await this.prisma.purchase.findMany({
-      where: {
-        userId: user.id,
-      },
-      include: {
-        product: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+      let purchases = await this.prisma.purchase.findMany({
+        where: {
+          userId: user.id,
+        },
+        include: {
+          product: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
 
-    let transfers = await this.prisma.transfers.findMany({
-      where: {
-        OR: [{ receiverId: user.id }, { senderId: user.id }],
-      },
-    });
+      let transfers = await this.prisma.transfers.findMany({
+        where: {
+          OR: [{ receiverId: user.id }, { senderId: user.id }],
+        },
+      });
 
-    transactions = transactions.map((el) => {
-      return { ...el, type: 'transaction' };
-    });
-    purchases = purchases.map((el) => {
-      return { ...el, type: 'purchase' };
-    });
-    transfers = transfers.map((el) => {
-      return { ...el, type: 'transfer' };
-    });
+      transactions = transactions.map((el) => {
+        return { ...el, type: 'transaction' };
+      });
+      purchases = purchases.map((el) => {
+        return { ...el, type: 'purchase' };
+      });
+      transfers = transfers.map((el) => {
+        return { ...el, type: 'transfer' };
+      });
 
-    const result: any[] = [...transactions, ...purchases, ...transfers];
+      const result: any[] = [...transactions, ...purchases, ...transfers];
 
-    result.sort((a, b) => b.createdAt - a.createdAt);
-    return result.slice(
-      pageNumber * selectNumber,
-      (pageNumber + 1) * selectNumber,
-    );
+      result.sort((a, b) => b.createdAt - a.createdAt);
+      return result.slice(
+        pageNumber * selectNumber,
+        (pageNumber + 1) * selectNumber,
+      );
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 
   async getBalance(token: string) {
-    const isUser = await this.tokenService.validateAccessToken(token);
+    try {
+      const isUser = await this.tokenService.validateAccessToken(token);
 
-    const user = await this.userSerivce.findById(isUser.id);
+      const user = await this.userSerivce.findById(isUser.id);
 
-    return { balance: user.mainBalance + user.bonusBalance };
+      return { balance: user.mainBalance + user.bonusBalance };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 }
