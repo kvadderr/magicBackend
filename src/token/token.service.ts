@@ -25,8 +25,6 @@ export class TokenService {
     try {
       const userData = jwt.verify(token, process.env.SECRETKEY) as JwtPayload;
 
-      console.log(userData);
-
       return userData;
     } catch (e) {
       return null;
