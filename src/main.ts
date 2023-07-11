@@ -20,9 +20,10 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('OOP project')
+    .setTitle('Magicow Rust Shop')
     .setDescription('The backend Node API description')
     .setVersion('1.0.1')
+    .addBearerAuth()
     .addTag('Dartar')
     .build();
   const document = SwaggerModule.createDocument(app, config);

@@ -12,12 +12,30 @@ import { StoreService } from './store.service';
 import { BuyItemDto } from './dto/buyItem.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import {
+  ProductDto,
+  StantardResponseDto,
+} from 'src/profile/dto/responseProfile.dto';
 
+@ApiTags('Store')
 @Controller('store')
 export class StoreController {
   constructor(private readonly storeService: StoreService) {}
 
   @Post('/buy')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Покупка предмета' })
+  @ApiOkResponse({
+    isArray: false,
+    status: 200,
+    type: StantardResponseDto,
+  })
   @UseGuards(AuthGuard('jwt'))
   async buyItem(
     @Body() dto: BuyItemDto,
@@ -42,6 +60,12 @@ export class StoreController {
   }
 
   @Get('/catalog/:id')
+  @ApiOkResponse({
+    isArray: true,
+    status: 200,
+    type: ProductDto,
+  })
+  @ApiOperation({ summary: 'Каталог магазина в зависимости от типа сервера' })
   getStore(@Param('id') id: number) {
     try {
       return this.storeService.getStoreByServerType(+id);

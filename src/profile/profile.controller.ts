@@ -12,12 +12,32 @@ import {
 import { ProfileService } from './profile.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiProperty,
+  ApiTags,
+} from '@nestjs/swagger';
+import { Inventory } from '@prisma/client';
+import {
+  InventoryResponseDto,
+  StantardResponseDto,
+} from './dto/responseProfile.dto';
 
+@ApiTags('Profile')
 @Controller('profile')
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
   @Get('/inventory')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Инвентарь пользователя' })
+  @ApiOkResponse({
+    isArray: false,
+    status: 200,
+    type: InventoryResponseDto,
+  })
   @UseGuards(AuthGuard('jwt'))
   getInventory(@Headers('Authorization') authorization) {
     try {
@@ -30,6 +50,8 @@ export class ProfileController {
 
   @Get('/details/?')
   @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Получение информации по транзакциям' })
   getDetails(
     @Headers('Authorization') authorization,
     @Query('page') pageNumber: number,
@@ -49,11 +71,9 @@ export class ProfileController {
 
   @Get('/balance')
   @UseGuards(AuthGuard('jwt'))
-  getBalance(
-    @Headers('Authorization') authorization,
-    @Query('page') pageNumber: number,
-    @Query('select') selectNumber: number,
-  ) {
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Получение баланса' })
+  getBalance(@Headers('Authorization') authorization) {
     try {
       const token = authorization.split(' ')[1];
       return this.profileService.getBalance(token);
@@ -64,6 +84,13 @@ export class ProfileController {
 
   @Put('/refund/:id')
   @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Возврат предмета' })
+  @ApiOkResponse({
+    isArray: false,
+    status: 200,
+    type: StantardResponseDto,
+  })
   async refundItem(
     @Headers('Authorization') authorization,
     @Param('id') id: number,
