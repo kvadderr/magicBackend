@@ -206,14 +206,16 @@ model baseSettings {
 }
 
 model urlSettings {
-  id       Int        @id @default(autoincrement())
-  icon     String     @db.LongText
-  text     String     @db.LongText
-  typeUrl  ETypeOfURL
-  url      String     @db.LongText
-  hidden   Boolean    @default(true)
-  name     String?    @db.LongText
-  sections String?    @db.LongText
+  id            Int        @id @default(autoincrement())
+  icon          String     @db.LongText
+  text          String?    @db.LongText
+  typeUrl       ETypeOfURL @default(CUSTOM_PAGE)
+  url           String     @db.LongText
+  hidden        Boolean    @default(true)
+  name          String?    @db.LongText
+  sections      String?    @db.LongText
+  isHaveSidebar Boolean
+  item          Json
 }
 
 model Token {

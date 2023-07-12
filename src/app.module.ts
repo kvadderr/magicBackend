@@ -8,6 +8,7 @@ import { TokenModule } from './token/token.module';
 import { ProfileModule } from './profile/profile.module';
 import { FileModule } from './file/file.module';
 import { StoreModule } from './store/store.module';
+import { CustompageModule } from './custompage/custompage.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { StoreModule } from './store/store.module';
     ProfileModule,
     FileModule,
     StoreModule,
+    CustompageModule,
   ],
   controllers: [],
   providers: [],
