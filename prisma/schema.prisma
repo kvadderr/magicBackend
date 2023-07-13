@@ -3,7 +3,7 @@
 
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["debian-openssl-1.1.x"]
+  binaryTargets = ["debian-openssl-1.1.x", "windows"]
 }
 
 datasource db {
@@ -117,11 +117,12 @@ model Inventory {
   userId              Int
   serverType          ServerType                  @relation(fields: [serverTypeId], references: [id])
   serverTypeId        Int
-  server              Server                      @relation(fields: [serverId], references: [id])
-  serverId            Int
+  server              Server?                     @relation(fields: [serverId], references: [id])
+  serverId            Int?
   serverName          String?                     @db.LongText
   product             Product                     @relation(fields: [productId], references: [id])
   productId           Int
+  createdAt           DateTime                    @default(now())
 }
 
 model ServerType {
@@ -129,7 +130,7 @@ model ServerType {
   name        String      @db.LongText
   description String      @db.LongText
   number      Int
-  hidden      Boolean     @default(false)
+  hidden      Boolean     @default(true)
   Inventory   Inventory[]
   Server      Server[]
   Product     Product[]
@@ -143,12 +144,14 @@ model Server {
   port         String      @db.LongText
   apiKey       String      @db.LongText
   name         String      @default("SERVER")
+  serverID     Int
   Inventory    Inventory[]
 }
 
 model Product {
   id             Int            @id @default(autoincrement())
   name           String         @db.LongText
+  nameID         String?
   description    String?        @db.LongText
   image          String?        @db.LongText
   type           ETypeOfProduct @default(GAME_ITEM)
@@ -158,11 +161,11 @@ model Product {
   amount         Int            @default(1)
   isChangeAmount Boolean        @default(false)
   price          Int
-  discount       Int?
-  saleDiscount   Int?
+  discount       Float?         @default(1)
+  saleDiscount   Float?         @default(1)
   saleDeadline   DateTime?
   maxCountOfSale Int?
-  hidden         Boolean        @default(false)
+  hidden         Boolean        @default(true)
   number         Int?
   autoactivation Boolean        @default(false)
 
@@ -203,14 +206,16 @@ model baseSettings {
 }
 
 model urlSettings {
-  id       Int        @id @default(autoincrement())
-  icon     String     @db.LongText
-  text     String     @db.LongText
-  typeUrl  ETypeOfURL
-  url      String     @db.LongText
-  hidden   Boolean    @default(false)
-  name     String?    @db.LongText
-  sections String?    @db.LongText
+  id            Int        @id @default(autoincrement())
+  icon          String     @db.LongText
+  text          String?    @db.LongText
+  typeUrl       ETypeOfURL @default(CUSTOM_PAGE)
+  url           String     @db.LongText
+  hidden        Boolean    @default(true)
+  name          String?    @db.LongText
+  sections      String?    @db.LongText
+  isHaveSidebar Boolean
+  item          Json
 }
 
 model Token {
