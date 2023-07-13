@@ -9,6 +9,7 @@ import { ProfileModule } from './profile/profile.module';
 import { FileModule } from './file/file.module';
 import { StoreModule } from './store/store.module';
 import { CustompageModule } from './custompage/custompage.module';
+import { ServersModule } from './servers/servers.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CustompageModule } from './custompage/custompage.module';
     FileModule,
     StoreModule,
     CustompageModule,
+    ServersModule,
   ],
   controllers: [],
   providers: [],
