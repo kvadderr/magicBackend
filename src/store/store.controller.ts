@@ -22,6 +22,7 @@ import {
   ProductDto,
   StantardResponseDto,
 } from 'src/profile/dto/responseProfile.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @ApiTags('Store')
 @Controller('store')
@@ -30,13 +31,13 @@ export class StoreController {
 
   @Post('/buy')
   @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Покупка предмета' })
   @ApiOkResponse({
     isArray: false,
     status: 200,
     type: StantardResponseDto,
   })
-  @UseGuards(AuthGuard('jwt'))
   async buyItem(
     @Body() dto: BuyItemDto,
     @Headers('Authorization') authorization,

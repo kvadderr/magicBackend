@@ -24,6 +24,9 @@ import {
   InventoryResponseDto,
   StantardResponseDto,
 } from './dto/responseProfile.dto';
+import { RolesGuard } from 'src/auth/guards/auth.guard';
+import { Roles } from 'src/auth/guards/roles-guard.decorator';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @ApiTags('Profile')
 @Controller('profile')
@@ -38,7 +41,7 @@ export class ProfileController {
     status: 200,
     type: InventoryResponseDto,
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   getInventory(@Headers('Authorization') authorization) {
     try {
       const token = authorization.split(' ')[1];
@@ -51,6 +54,7 @@ export class ProfileController {
   @Get('/details/?')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Получение информации по транзакциям' })
   getDetails(
     @Headers('Authorization') authorization,
@@ -72,6 +76,7 @@ export class ProfileController {
   @Get('/balance')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Получение баланса' })
   getBalance(@Headers('Authorization') authorization) {
     try {
@@ -85,6 +90,7 @@ export class ProfileController {
   @Put('/refund/:id')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Возврат предмета' })
   @ApiOkResponse({
     isArray: false,

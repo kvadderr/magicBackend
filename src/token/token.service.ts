@@ -3,16 +3,23 @@ import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from 'src/auth/dto/jwtPayload.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SaveTokenDto } from './dto/saveToken.dto';
+import { SECRET_KEY } from 'src/core/config';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class TokenService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private jwtService: JwtService,
+  ) {}
 
   generateTokens(payload: JwtPayload) {
-    const accessToken = jwt.sign(payload, process.env.SECRETKEY, {
+    const accessToken = this.jwtService.sign(payload, {
+      privateKey: SECRET_KEY,
       expiresIn: '6h',
     });
-    const refreshToken = jwt.sign(payload, process.env.SECRETKEY, {
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: SECRET_KEY,
       expiresIn: '30d',
     });
     return {
@@ -23,17 +30,23 @@ export class TokenService {
 
   async validateAccessToken(token: string) {
     try {
-      const userData = jwt.verify(token, process.env.SECRETKEY) as JwtPayload;
+      const userData = this.jwtService.verify(token, {
+        secret: SECRET_KEY,
+      }) as JwtPayload;
 
       return userData;
     } catch (e) {
+      console.log(e);
+
       return null;
     }
   }
 
   async validateRefreshToken(token: string) {
     try {
-      const userData = jwt.verify(token, process.env.SECRETKEY) as JwtPayload;
+      const userData = this.jwtService.verify(token, {
+        secret: SECRET_KEY,
+      }) as JwtPayload;
 
       const currentToken = await this.prisma.token.findFirst({
         where: { token, userId: userData.id },

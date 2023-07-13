@@ -18,7 +18,7 @@ export class ProfileService {
 
       if (!isUser) {
         throw new HttpException(
-          'Пользователь не найден',
+          'Пользователь не найден или срок действия токена истек',
           HttpStatus.BAD_REQUEST,
         );
       }

@@ -10,6 +10,7 @@ import { HttpModule } from '@nestjs/axios';
 import { SteamStrategy } from './strategy/auth.steam.strategy';
 import { TokenModule } from 'src/token/token.module';
 import { JwtStrategy } from './strategy/jwt.strategy';
+import { SECRET_KEY } from 'src/core/config';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { JwtStrategy } from './strategy/jwt.strategy';
     }),
     PassportModule.register({ defaultStrategy: 'steam' }),
     JwtModule.register({
-      secret: process.env.SECRETKEY,
+      secret: SECRET_KEY,
       signOptions: {
         expiresIn: process.env.EXPIRESIN,
       },
