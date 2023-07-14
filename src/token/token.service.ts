@@ -16,7 +16,7 @@ export class TokenService {
   generateTokens(payload: JwtPayload) {
     const accessToken = this.jwtService.sign(payload, {
       privateKey: SECRET_KEY,
-      expiresIn: '15s',
+      expiresIn: '6h',
     });
     const refreshToken = this.jwtService.sign(payload, {
       secret: SECRET_KEY,
