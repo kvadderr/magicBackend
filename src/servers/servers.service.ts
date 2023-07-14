@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -71,16 +71,65 @@ export class ServersService {
     return { result, sumPlayers, maxServerOnline };
   }
 
-  async getLeaderboard() {
-    const onlineServer = (
+  async getLeaderboard(id: number) {
+    const serverInfo = await this.prisma.server.findFirst({
+      where: {
+        id,
+      },
+    });
+
+    if (!serverInfo) {
+      throw new HttpException('Сервер не найден', HttpStatus.BAD_REQUEST);
+    }
+
+    const leaderboard: PlayerObject = (
       await firstValueFrom(
-        this.httpService.get(`https://vk.magicrust.ru/api/getOnline`).pipe(
-          catchError((error: AxiosError) => {
-            console.error(error.response.data);
-            throw 'An error happened!';
-          }),
-        ),
+        this.httpService
+          .get(
+            `https://stat.magic-rust.ru/api/getPublicData.php?server=${serverInfo.serverID}`,
+          )
+          .pipe(
+            catchError((error: AxiosError) => {
+              console.error(error.response.data);
+              throw 'An error happened!';
+            }),
+          ),
       )
     ).data;
+
+    const sortedArray = Object.entries(leaderboard)
+      .sort(([, a], [, b]) => b.stats.kp_total - a.stats.kp_total)
+      .map(([key, value]) => ({ [key]: value }));
+
+    return sortedArray;
+  }
+
+  async getServers() {
+    return this.prisma.server.findMany();
   }
 }
+
+type PlayerStats = {
+  p_score: number;
+  kp_total: number;
+  d_player: number;
+  p_lastjoin: number;
+};
+
+type PlayerData = {
+  name: string;
+  avatar: string;
+};
+
+type Player = {
+  stats: PlayerStats;
+  data: PlayerData;
+};
+
+type PlayerObject = {
+  [key: string]: Player;
+};
+
+const obj: PlayerObject = {
+  // ... ваш исходный объект ...
+};

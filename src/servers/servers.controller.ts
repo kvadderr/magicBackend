@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { ServersService } from './servers.service';
 
 @Controller('servers')
@@ -8,5 +8,15 @@ export class ServersController {
   @Get('/')
   getStats() {
     return this.serverService.getOnline();
+  }
+
+  @Get('/leaders/:id')
+  getLeaderboard(@Param('id') id: string) {
+    return this.serverService.getLeaderboard(+id);
+  }
+
+  @Get('/server')
+  getServer() {
+    return this.serverService.getServers();
   }
 }
