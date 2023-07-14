@@ -16,7 +16,7 @@ export class TokenService {
   generateTokens(payload: JwtPayload) {
     const accessToken = this.jwtService.sign(payload, {
       privateKey: SECRET_KEY,
-      expiresIn: '6h',
+      expiresIn: '15s',
     });
     const refreshToken = this.jwtService.sign(payload, {
       secret: SECRET_KEY,
@@ -53,10 +53,7 @@ export class TokenService {
       });
 
       if (!currentToken) {
-        throw new HttpException(
-          'Пользователь не авторизован',
-          HttpStatus.UNAUTHORIZED,
-        );
+        throw new HttpException('Токен не найден', HttpStatus.UNAUTHORIZED);
       }
 
       return userData;

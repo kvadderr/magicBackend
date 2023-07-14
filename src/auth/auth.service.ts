@@ -57,24 +57,24 @@ export class AuthService {
           refreshToken: tokens.refreshToken,
           user: new ResponseUserDto(user),
         };
+      } else {
+        const tokens = this.tokenService.generateTokens({
+          id: candidate.id,
+          steamId: candidate.steamID,
+          role: candidate.role,
+        });
+
+        await this.tokenService.saveToken({
+          userId: candidate.id,
+          token: tokens.refreshToken,
+        });
+
+        return {
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          user: new ResponseUserDto(candidate),
+        };
       }
-
-      const tokens = this.tokenService.generateTokens({
-        id: candidate.id,
-        steamId: candidate.steamID,
-        role: candidate.role,
-      });
-
-      await this.tokenService.saveToken({
-        userId: candidate.id,
-        token: tokens.refreshToken,
-      });
-
-      return {
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-        user: new ResponseUserDto(candidate),
-      };
     } catch (error) {
       console.error(error);
       throw error;
