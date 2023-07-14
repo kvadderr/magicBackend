@@ -7,6 +7,6 @@ export class ServersController {
 
   @Get('/')
   getStats() {
-    return this.serverService.getServerStat();
+    return this.serverService.getOnline();
   }
 }

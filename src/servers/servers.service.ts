@@ -57,12 +57,30 @@ export class ServersService {
       },
     });
 
+    let sumPlayers = 0;
+    let maxServerOnline = 0;
+
     const result = server.map((el) => {
       const currentOnline = onlineServer[`${el.IP}:${el.port}`].players;
       const maxPlayers = onlineServer[`${el.IP}:${el.port}`].maxplayers;
+      sumPlayers += onlineServer[`${el.IP}:${el.port}`].players;
+      maxServerOnline += onlineServer[`${el.IP}:${el.port}`].maxplayers;
       return { ...el, currentOnline, maxPlayers };
     });
 
-    return result;
+    return { result, sumPlayers, maxServerOnline };
+  }
+
+  async getLeaderboard() {
+    const onlineServer = (
+      await firstValueFrom(
+        this.httpService.get(`https://vk.magicrust.ru/api/getOnline`).pipe(
+          catchError((error: AxiosError) => {
+            console.error(error.response.data);
+            throw 'An error happened!';
+          }),
+        ),
+      )
+    ).data;
   }
 }
