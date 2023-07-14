@@ -87,7 +87,7 @@ export class AuthController {
     const data = await this.authService.signUpIn(id);
 
     return res
-      .cookie('refreshToken', '', {
+      .cookie('refreshToken', data.refreshToken, {
         httpOnly: true,
         maxAge: 30 * 24 * 60 * 1000,
         sameSite: 'lax',
