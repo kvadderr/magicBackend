@@ -6,6 +6,7 @@ import { HttpService } from '@nestjs/axios';
 import { TokenService } from 'src/token/token.service';
 import { ResponseUserDto } from './dto/responseUser.dto';
 import { JwtPayload } from './dto/jwtPayload.dto';
+import { UserAgentDto } from './dto/userAgent.dto';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +36,7 @@ export class AuthService {
     return user;
   }
 
-  async signUpIn(id: string) {
+  async signUpIn(id: string, userAgent: UserAgentDto) {
     try {
       const candidate = await this.userService.findBySteamId(id);
 
@@ -45,11 +46,20 @@ export class AuthService {
           id: user.id,
           steamId: user.steamID,
           role: user.role,
+          avatar: user.steamAvatar,
+          name: user.steamName,
         });
 
         await this.tokenService.saveToken({
           userId: user.id,
           token: tokens.refreshToken,
+          userAgent: {
+            browser: userAgent.browser,
+            clientIp: userAgent.clientIp,
+            deviceName: userAgent.deviceName,
+            deviceType: userAgent.deviceType,
+            os: userAgent.os,
+          },
         });
 
         return {
@@ -62,11 +72,20 @@ export class AuthService {
           id: candidate.id,
           steamId: candidate.steamID,
           role: candidate.role,
+          avatar: candidate.steamAvatar,
+          name: candidate.steamName,
         });
 
         await this.tokenService.saveToken({
           userId: candidate.id,
           token: tokens.refreshToken,
+          userAgent: {
+            browser: userAgent.browser,
+            clientIp: userAgent.clientIp,
+            deviceName: userAgent.deviceName,
+            deviceType: userAgent.deviceType,
+            os: userAgent.os,
+          },
         });
 
         return {
@@ -82,8 +101,13 @@ export class AuthService {
     //* ExampleL {"steamId":"https://steamcommunity.com/openid/id/76561198075427441"}
   }
 
-  async refresh(token: string) {
-    const userData = await this.tokenService.validateRefreshToken(token);
+  async refresh(token: string, userAgent: UserAgentDto) {
+    console.log(userAgent);
+
+    const userData = await this.tokenService.validateRefreshToken(
+      token,
+      userAgent,
+    );
 
     if (!userData) {
       throw new HttpException(
@@ -98,11 +122,14 @@ export class AuthService {
       id: user.id,
       steamId: user.steamID,
       role: user.role,
+      avatar: user.steamAvatar,
+      name: user.steamName,
     });
 
     await this.tokenService.saveToken({
       userId: user.id,
       token: tokens.refreshToken,
+      userAgent,
     });
 
     return {
@@ -121,18 +148,27 @@ export class AuthService {
     }
   }
 
-  async getByOpenId(id: string) {
+  async getByOpenId(id: string, userAgent: UserAgentDto) {
     const candidate = await this.userService.findBySteamId(id);
 
     const tokens = this.tokenService.generateTokens({
       id: candidate.id,
       steamId: candidate.steamID,
       role: candidate.role,
+      avatar: candidate.steamAvatar,
+      name: candidate.steamName,
     });
 
     await this.tokenService.saveToken({
       userId: candidate.id,
       token: tokens.refreshToken,
+      userAgent: {
+        browser: userAgent.browser,
+        clientIp: userAgent.clientIp,
+        deviceName: userAgent.deviceName,
+        deviceType: userAgent.deviceType,
+        os: userAgent.os,
+      },
     });
 
     return {

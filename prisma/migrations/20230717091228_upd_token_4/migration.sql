@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `Token` ALTER COLUMN `browser` DROP DEFAULT,
+    ALTER COLUMN `os` DROP DEFAULT;

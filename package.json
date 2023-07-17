@@ -45,7 +45,8 @@
     "passport-local": "^1.0.0",
     "passport-steam": "^1.0.18",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.2.0"
+    "rxjs": "^7.2.0",
+    "ua-parser-js": "^1.0.35"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",

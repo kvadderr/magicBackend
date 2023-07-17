@@ -28,7 +28,7 @@ export class AuthController {
   @UseGuards(AuthGuard('steam'))
   async redirectToSteamAuth(): Promise<void> {}
 
-  @Get('steam/return')
+  /* @Get('steam/return')
   @UseGuards(AuthGuard('steam'))
   async handleSteamAuthCallback(
     @Req() req,
@@ -47,11 +47,17 @@ export class AuthController {
         accessToken: data.accessToken,
         user: data.user,
       });
-  }
+  } */
 
   @Get('/refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
-    const data = await this.authService.refresh(req.cookies.refreshToken);
+    const data = await this.authService.refresh(req.cookies.refreshToken, {
+      clientIp: req.clientIp,
+      browser: req.browser,
+      deviceName: req.deviceName,
+      deviceType: req.deviceType,
+      os: req.os,
+    });
 
     return res
       .cookie('refreshToken', data.refreshToken, {
@@ -80,11 +86,22 @@ export class AuthController {
   }
 
   @Get('/openId/:id')
-  async getUserData(@Param('id') id: string, @Res() res: Response) {
+  async getUserData(
+    @Param('id') id: string,
+    @Res() res: Response,
+    @Req() req: Request,
+  ) {
     if (!id) {
       throw new HttpException('id is not provided', HttpStatus.BAD_REQUEST);
     }
-    const data = await this.authService.signUpIn(id);
+
+    const data = await this.authService.signUpIn(id, {
+      clientIp: req.clientIp,
+      browser: req.browser,
+      deviceName: req.deviceName,
+      deviceType: req.deviceType,
+      os: req.os,
+    });
 
     return res
       .cookie('refreshToken', data.refreshToken, {

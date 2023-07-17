@@ -219,8 +219,13 @@ model urlSettings {
 }
 
 model Token {
-  id     Int    @id @default(autoincrement())
-  token  String @db.LongText
-  User   User?  @relation(fields: [userId], references: [id])
-  userId Int
+  id         Int     @id @default(autoincrement())
+  token      String  @db.LongText
+  User       User?   @relation(fields: [userId], references: [id])
+  userId     Int
+  deviceType String?
+  deviceName String?
+  clientIp   String?
+  browser    String?
+  os         String?
 }
