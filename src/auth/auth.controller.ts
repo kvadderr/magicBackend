@@ -39,7 +39,6 @@ export class AuthController {
 
     return res
       .cookie('refreshToken', data.refreshToken, {
-        httpOnly: true,
         maxAge: 30 * 24 * 60 * 1000,
         sameSite: 'lax',
       })
@@ -61,7 +60,6 @@ export class AuthController {
 
     return res
       .cookie('refreshToken', data.refreshToken, {
-        httpOnly: true,
         maxAge: 30 * 24 * 60 * 1000,
         sameSite: 'lax',
       })
@@ -78,7 +76,6 @@ export class AuthController {
 
     return res
       .cookie('refreshToken', '', {
-        httpOnly: true,
         maxAge: 30 * 24 * 60 * 1000,
         sameSite: 'lax',
       })
@@ -105,7 +102,6 @@ export class AuthController {
 
     return res
       .cookie('refreshToken', data.refreshToken, {
-        httpOnly: true,
         maxAge: 30 * 24 * 60 * 1000,
         sameSite: 'lax',
       })

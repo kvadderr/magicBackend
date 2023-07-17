@@ -46,7 +46,11 @@ export class UserAgentMiddleware implements NestMiddleware {
     const clientIp =
       req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
-    req.clientIp = clientIp.toString().split(':').at(-1);
+    if (clientIp.toString().split(':').at(-1) === '1') {
+      req.clientIp = '127.0.0.1';
+    } else {
+      req.clientIp = clientIp.toString().split(':').at(-1);
+    }
 
     next();
   }
