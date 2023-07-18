@@ -3,12 +3,14 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { TokenService } from 'src/token/token.service';
 
 @Injectable()
 export class ServersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly httpService: HttpService,
+    private readonly tokenService: TokenService,
   ) {}
   //*API мониторинг: https://vk.magicrust.ru/api/getOnline
   //*API leaderboard: https://stat.magic-rust.ru/api/getPublicData.php?server=1
@@ -71,7 +73,7 @@ export class ServersService {
     return { result, sumPlayers, maxServerOnline };
   }
 
-  async getLeaderboard(id: number) {
+  async getLeaderboard(id: number, token?: string) {
     const serverInfo = await this.prisma.server.findFirst({
       where: {
         id,
@@ -101,11 +103,48 @@ export class ServersService {
       .sort(([, a], [, b]) => b.stats.kp_total - a.stats.kp_total)
       .map(([key, value]) => ({ [key]: value }));
 
+    /* if (token) {
+      const isUser = await this.tokenService.validateAccessToken(token);
+
+      if (!isUser) {
+        throw new HttpException(
+          'Пользователь не найден или срок действия токена истек',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      
+    } */
+
     return sortedArray;
   }
 
   async getServers() {
     return this.prisma.server.findMany();
+  }
+
+  async getBanned(count: number, page: number, searchValue?: string) {
+    const banlist: BanList[] = (
+      await firstValueFrom(
+        this.httpService.get(`https://vk.magicrust.ru/api/getBans`).pipe(
+          catchError((error: AxiosError) => {
+            console.error(error.response.data);
+            throw 'An error happened!';
+          }),
+        ),
+      )
+    ).data;
+
+    if (searchValue) {
+      const lowercaseSearchValue = searchValue.toLowerCase();
+
+      return banlist.filter(
+        (item) =>
+          item.nickname.toLowerCase().includes(lowercaseSearchValue) ||
+          item.steamid.includes(searchValue),
+      );
+    }
+    return banlist.slice(page * count, (page + 1) * count);
   }
 }
 
@@ -130,6 +169,10 @@ type PlayerObject = {
   [key: string]: Player;
 };
 
-const obj: PlayerObject = {
-  // ... ваш исходный объект ...
+type BanList = {
+  steamid: string;
+  nickname: string;
+  reason: string;
+  time: number;
+  banip: number;
 };

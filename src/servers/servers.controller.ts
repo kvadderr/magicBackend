@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ServersService } from './servers.service';
 
 @Controller('servers')
@@ -23,5 +23,18 @@ export class ServersController {
   @Get('/upload')
   getServerInDB() {
     return this.serverService.getServerStat();
+  }
+
+  @Get('/ban/?')
+  getBanList(
+    @Query('page') page: string,
+    @Query('count') count: string,
+    @Query('searchValue') searchValue: string,
+  ) {
+    return this.serverService.getBanned(
+      Number(count),
+      Number(page),
+      searchValue,
+    );
   }
 }
