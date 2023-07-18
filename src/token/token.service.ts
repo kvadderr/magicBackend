@@ -3,7 +3,7 @@ import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from 'src/auth/dto/jwtPayload.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SaveTokenDto } from './dto/saveToken.dto';
-import { SECRET_KEY } from 'src/core/config';
+import { SECRET_KEY, expiresAccessToken } from 'src/core/config';
 import { JwtService } from '@nestjs/jwt';
 import { UserAgentDto } from 'src/auth/dto/userAgent.dto';
 
@@ -17,7 +17,7 @@ export class TokenService {
   generateTokens(payload: JwtPayload) {
     const accessToken = this.jwtService.sign(payload, {
       privateKey: SECRET_KEY,
-      expiresIn: '6h',
+      expiresIn: expiresAccessToken,
     });
     const refreshToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_REFTESH_SECRET,
