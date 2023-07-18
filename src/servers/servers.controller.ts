@@ -19,4 +19,9 @@ export class ServersController {
   getServer() {
     return this.serverService.getServers();
   }
+
+  @Get('/upload')
+  getServerInDB() {
+    return this.serverService.getServerStat();
+  }
 }
