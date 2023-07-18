@@ -15,4 +15,4 @@ export const secureRequst = true;
 export const httpOnlyRequest = true;
 export const sameSiteRequest = 'lax';
 
-export const expiresAccessToken = '15s';
+export const expiresAccessToken = '7d';
