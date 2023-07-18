@@ -15,6 +15,11 @@ import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { HttpService } from '@nestjs/axios';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
+import {
+  httpOnlyRequest,
+  sameSiteRequest,
+  secureRequst,
+} from 'src/core/config';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -61,7 +66,9 @@ export class AuthController {
     return res
       .cookie('refreshToken', data.refreshToken, {
         maxAge: 30 * 24 * 60 * 1000,
-        sameSite: 'lax',
+        secure: secureRequst,
+        sameSite: sameSiteRequest,
+        httpOnly: httpOnlyRequest,
       })
       .json({
         accessToken: data.accessToken,
@@ -77,7 +84,9 @@ export class AuthController {
     return res
       .cookie('refreshToken', '', {
         maxAge: 30 * 24 * 60 * 1000,
-        sameSite: 'lax',
+        secure: secureRequst,
+        sameSite: sameSiteRequest,
+        httpOnly: httpOnlyRequest,
       })
       .json(data);
   }
@@ -103,7 +112,9 @@ export class AuthController {
     return res
       .cookie('refreshToken', data.refreshToken, {
         maxAge: 30 * 24 * 60 * 1000,
-        sameSite: 'lax',
+        secure: secureRequst,
+        sameSite: sameSiteRequest,
+        httpOnly: httpOnlyRequest,
       })
       .json(data);
   }

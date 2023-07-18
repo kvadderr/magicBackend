@@ -10,3 +10,7 @@ export const BASE_RETURN_URL =
   process.env.BASE_RETURN_URL || `http://localhost:3001/profile`;
 export const BASE_REALM = process.env.BASE_REALM || `http://localhost:3001/`;
 export const SECRET_KEY = process.env.SECRET_KEY || 'SQGmGagfJt797J9p';
+
+export const secureRequst = true;
+export const httpOnlyRequest = true;
+export const sameSiteRequest = 'lax';
