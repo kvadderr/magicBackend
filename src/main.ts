@@ -18,6 +18,7 @@ async function bootstrap() {
       'https://api.steampowered.com',
     ],
     credentials: true,
+    allowedHeaders: 'cross-site',
   });
 
   app.use(cookieParser());

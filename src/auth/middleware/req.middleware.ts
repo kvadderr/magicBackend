@@ -23,8 +23,13 @@ export class UserAgentMiddleware implements NestMiddleware {
     const device = parser.getDevice();
 
     if (device.model) {
-      req.deviceType = device.type;
-      req.deviceName = device.model;
+      if (device.type == 'Macintosh') {
+        req.deviceType = 'Macbook';
+        req.deviceName = device.model;
+      } else {
+        req.deviceType = device.type;
+        req.deviceName = device.model;
+      }
     } else {
       req.deviceType = 'pc';
       req.deviceName = 'pc';
