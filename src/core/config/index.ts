@@ -14,3 +14,5 @@ export const SECRET_KEY = process.env.SECRET_KEY || 'SQGmGagfJt797J9p';
 export const secureRequst = true;
 export const httpOnlyRequest = true;
 export const sameSiteRequest = 'lax';
+
+export const expiresAccessToken = '15s';
