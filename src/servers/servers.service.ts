@@ -138,13 +138,21 @@ export class ServersService {
     if (searchValue) {
       const lowercaseSearchValue = searchValue.toLowerCase();
 
-      return banlist.filter(
+      const banResult = banlist.filter(
         (item) =>
           item.nickname.toLowerCase().includes(lowercaseSearchValue) ||
           item.steamid.includes(searchValue),
       );
+
+      return {
+        banlist: banResult.slice(page * count, (page + 1) * count),
+        pages: Math.round(banResult.length / count),
+      };
     }
-    return banlist.slice(page * count, (page + 1) * count);
+    return {
+      banlist: banlist.slice(page * count, (page + 1) * count),
+      pages: Math.round(banlist.length / count),
+    };
   }
 }
 
