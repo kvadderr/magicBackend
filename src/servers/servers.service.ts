@@ -145,12 +145,12 @@ export class ServersService {
       );
 
       return {
-        banlist: banResult.slice(page * count, (page + 1) * count),
+        banlist: banResult.slice((page - 1) * count, page * count),
         pages: Math.round(banResult.length / count),
       };
     }
     return {
-      banlist: banlist.slice(page * count, (page + 1) * count),
+      banlist: banlist.slice((page - 1) * count, page * count),
       pages: Math.round(banlist.length / count),
     };
   }
