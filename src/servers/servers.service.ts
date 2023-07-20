@@ -146,12 +146,13 @@ export class ServersService {
 
       return {
         banlist: banResult.slice((page - 1) * count, page * count),
-        pages: Math.ceil(banResult.length / count),
+        pages:
+          banResult.length > count ? Math.ceil(banResult.length / count) : 1,
       };
     }
     return {
       banlist: banlist.slice((page - 1) * count, page * count),
-      pages: Math.ceil(banlist.length / count),
+      pages: banlist.length > count ? Math.ceil(banlist.length / count) : 1,
     };
   }
 }
