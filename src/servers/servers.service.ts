@@ -2,6 +2,11 @@ import { HttpService } from '@nestjs/axios';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
+import {
+  getBanListURL,
+  getLeaderboardURL,
+  getOnlineURL,
+} from 'src/core/constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TokenService } from 'src/token/token.service';
 
@@ -16,7 +21,7 @@ export class ServersService {
   //*API leaderboard: https://stat.magic-rust.ru/api/getPublicData.php?server=1
   async getServerStat() {
     const serverData = await firstValueFrom(
-      this.httpService.get(`https://vk.magicrust.ru/api/getOnline`).pipe(
+      this.httpService.get(getOnlineURL).pipe(
         catchError((error: AxiosError) => {
           console.error(error.response.data);
           throw 'An error happened!';
@@ -41,7 +46,7 @@ export class ServersService {
   async getOnline() {
     const onlineServer = (
       await firstValueFrom(
-        this.httpService.get(`https://vk.magicrust.ru/api/getOnline`).pipe(
+        this.httpService.get(getOnlineURL).pipe(
           catchError((error: AxiosError) => {
             console.error(error.response.data);
             throw 'An error happened!';
@@ -91,16 +96,12 @@ export class ServersService {
 
     const leaderboard: PlayerObject = (
       await firstValueFrom(
-        this.httpService
-          .get(
-            `https://stat.magic-rust.ru/api/getPublicData.php?server=${serverInfo.serverID}`,
-          )
-          .pipe(
-            catchError((error: AxiosError) => {
-              console.error(error.response.data);
-              throw 'An error happened!';
-            }),
-          ),
+        this.httpService.get(`${getLeaderboardURL}${serverInfo.serverID}`).pipe(
+          catchError((error: AxiosError) => {
+            console.error(error.response.data);
+            throw 'An error happened!';
+          }),
+        ),
       )
     ).data;
 
@@ -161,7 +162,7 @@ export class ServersService {
   async getBanned(count: number, page: number, searchValue?: string) {
     const banlist: BanList[] = (
       await firstValueFrom(
-        this.httpService.get(`https://vk.magicrust.ru/api/getBans`).pipe(
+        this.httpService.get(getBanListURL).pipe(
           catchError((error: AxiosError) => {
             console.error(error.response.data);
             throw 'An error happened!';
