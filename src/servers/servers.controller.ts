@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Headers, Param, Query } from '@nestjs/common';
 import { ServersService } from './servers.service';
-import { GetLeaderboardDto } from './dto/getLeaderboard';
 
 @Controller('servers')
 export class ServersController {
