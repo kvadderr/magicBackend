@@ -73,7 +73,12 @@ export class ServersService {
     return { result, sumPlayers, maxServerOnline };
   }
 
-  async getLeaderboard(id: number, token?: string) {
+  async getLeaderboard(
+    id: number,
+    count: number,
+    page: number,
+    token?: string,
+  ) {
     const serverInfo = await this.prisma.server.findFirst({
       where: {
         id,
@@ -103,7 +108,7 @@ export class ServersService {
       .sort(([, a], [, b]) => b.stats.kp_total - a.stats.kp_total)
       .map(([key, value]) => ({ [key]: value }));
 
-    /* if (token) {
+    if (token) {
       const isUser = await this.tokenService.validateAccessToken(token);
 
       if (!isUser) {
@@ -112,15 +117,45 @@ export class ServersService {
           HttpStatus.BAD_REQUEST,
         );
       }
+      let pos = -1;
+      let data;
+      for (const player of sortedArray) {
+        for (const playerId in player) {
+          if (player[playerId].data.name === isUser.name) {
+            pos = sortedArray.indexOf(player);
+            data = player[playerId];
+          }
+        }
+      }
 
-      
-    } */
+      if (pos != -1) {
+        return {
+          leaderboard: sortedArray.slice((page - 1) * count, page * count),
+          userData: data,
+        };
+      } else {
+        return {
+          leaderboard: sortedArray.slice((page - 1) * count, page * count),
+        };
+      }
+    }
 
-    return sortedArray;
+    return {
+      leaderboard: sortedArray.slice((page - 1) * count, page * count),
+    };
   }
 
   async getServers() {
     return this.prisma.server.findMany();
+  }
+
+  async getListServers() {
+    return this.prisma.server.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
   }
 
   async getBanned(count: number, page: number, searchValue?: string) {

@@ -174,7 +174,7 @@ model Product {
   number         Int?
   autoactivation Boolean        @default(false)
 
-  isBackground      Boolean @default(false) // есть ли бекграунд или он прозрачный
+  isBackgroundColor Boolean @default(false) // есть ли бекграунд или он прозрачный
   blockSize         Int     @default(1)
   isBackgroundImage Boolean @default(false) // картинка на бекграунде или нет
 
