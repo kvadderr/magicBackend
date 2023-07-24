@@ -4,9 +4,9 @@ services:
   db:
     image: mysql:5.7
     environment:
-      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: 4dj3sK!BH4MrLhLn
       MYSQL_DATABASE: magicow
-      MYSQL_PASSWORD: magicow
+      MYSQL_PASSWORD: 4dj3sK!BH4MrLhLn
     ports:
       # <Port exposed> : <MySQL Port running inside container>
       - '3306:3306'

@@ -23,10 +23,10 @@ export class CustompageService {
     const newPage = await this.prisma.urlSettings.create({
       data: {
         icon: dto.mainIcon,
-        item: JSON.parse(JSON.stringify(dto.items)),
+        sections: JSON.parse(JSON.stringify(dto.items)),
         isHaveSidebar: dto.isHaveSidebar,
         url: dto.url,
-        name: dto.mainTitle,
+        text: dto.mainTitle,
       },
     });
 
@@ -61,10 +61,10 @@ export class CustompageService {
       },
       data: {
         icon: dto.mainIcon,
-        item: JSON.parse(JSON.stringify(dto.items)),
+        sections: JSON.parse(JSON.stringify(dto.items)),
         isHaveSidebar: dto.isHaveSidebar,
         url: dto.url,
-        name: dto.mainTitle,
+        text: dto.mainTitle,
       },
     });
   }

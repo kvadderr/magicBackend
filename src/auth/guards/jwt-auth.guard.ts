@@ -1,6 +1,8 @@
 import {
   CanActivate,
   ExecutionContext,
+  HttpException,
+  HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -28,11 +30,14 @@ export class JwtAuthGuard implements CanActivate {
       }
 
       const user = this.jwtService.verify(token, { secret: SECRET_KEY });
+      if (!user) {
+        throw new HttpException('Токен истек', HttpStatus.UNAUTHORIZED);
+      }
       req.user = user;
       return true;
     } catch (e) {
       throw new UnauthorizedException({
-        message: 'Пользователь не авторизован',
+        message: e.message,
       });
     }
   }

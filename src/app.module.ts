@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
@@ -9,6 +9,8 @@ import { ProfileModule } from './profile/profile.module';
 import { FileModule } from './file/file.module';
 import { StoreModule } from './store/store.module';
 import { CustompageModule } from './custompage/custompage.module';
+import { ServersModule } from './servers/servers.module';
+import { UserAgentMiddleware } from './auth/middleware/req.middleware';
 
 @Module({
   imports: [
@@ -21,8 +23,13 @@ import { CustompageModule } from './custompage/custompage.module';
     FileModule,
     StoreModule,
     CustompageModule,
+    ServersModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(UserAgentMiddleware).forRoutes('auth');
+  }
+}

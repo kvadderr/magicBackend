@@ -3,8 +3,9 @@ import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from 'src/auth/dto/jwtPayload.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SaveTokenDto } from './dto/saveToken.dto';
-import { SECRET_KEY } from 'src/core/config';
+import { SECRET_KEY, expiresAccessToken } from 'src/core/config';
 import { JwtService } from '@nestjs/jwt';
+import { UserAgentDto } from 'src/auth/dto/userAgent.dto';
 
 @Injectable()
 export class TokenService {
@@ -16,10 +17,10 @@ export class TokenService {
   generateTokens(payload: JwtPayload) {
     const accessToken = this.jwtService.sign(payload, {
       privateKey: SECRET_KEY,
-      expiresIn: '6h',
+      expiresIn: expiresAccessToken,
     });
     const refreshToken = this.jwtService.sign(payload, {
-      secret: SECRET_KEY,
+      secret: process.env.JWT_REFTESH_SECRET,
       expiresIn: '30d',
     });
     return {
@@ -42,25 +43,38 @@ export class TokenService {
     }
   }
 
-  async validateRefreshToken(token: string) {
+  async validateRefreshToken(token: string, userAgent: UserAgentDto) {
     try {
+      console.log(process.env.JWT_REFTESH_SECRET);
+
       const userData = this.jwtService.verify(token, {
-        secret: SECRET_KEY,
+        secret: process.env.JWT_REFTESH_SECRET,
       }) as JwtPayload;
 
       const currentToken = await this.prisma.token.findFirst({
         where: { token, userId: userData.id },
       });
 
-      if (!currentToken) {
+      console.log(currentToken);
+
+      if (
+        !currentToken ||
+        !(currentToken.os === userAgent.os) ||
+        !(currentToken.deviceType === userAgent.deviceType) ||
+        !(currentToken.deviceName === userAgent.deviceName) ||
+        !(currentToken.browser === userAgent.browser) ||
+        !(currentToken.clientIp === userAgent.clientIp)
+      ) {
         throw new HttpException(
-          'Пользователь не авторизован',
+          'Пользователь не авторизован - неверные параметры',
           HttpStatus.UNAUTHORIZED,
         );
       }
 
       return userData;
     } catch (e) {
+      console.log(e);
+
       const currentToken = await this.prisma.token.findFirst({
         where: { token },
       });
@@ -91,6 +105,11 @@ export class TokenService {
     const candidateToken = await this.prisma.token.findFirst({
       where: {
         userId: dto.userId,
+        clientIp: dto.userAgent.clientIp,
+        deviceName: dto.userAgent.deviceName,
+        deviceType: dto.userAgent.deviceType,
+        browser: dto.userAgent.browser,
+        os: dto.userAgent.os,
       },
     });
 
@@ -105,6 +124,11 @@ export class TokenService {
       data: {
         userId: dto.userId,
         token: dto.token,
+        browser: dto.userAgent.browser,
+        clientIp: dto.userAgent.clientIp,
+        deviceName: dto.userAgent.deviceName,
+        deviceType: dto.userAgent.deviceType,
+        os: dto.userAgent.os,
       },
     });
 
