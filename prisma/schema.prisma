@@ -174,11 +174,9 @@ model Product {
   number         Int?
   autoactivation Boolean        @default(false)
 
-  isBackground      Boolean @default(false)
-  previewImage      String?
+  isBackground      Boolean @default(false) // есть ли бекграунд или он прозрачный
   blockSize         Int     @default(1)
-  label             Int     @default(1)
-  isBackgroundImage Boolean @default(false)
+  isBackgroundImage Boolean @default(false) // картинка на бекграунде или нет
 
   buttonColor EButtonColor @default(BLUE)
   textButton  String?
@@ -217,15 +215,13 @@ model baseSettings {
 
 model urlSettings {
   id            Int        @id @default(autoincrement())
-  icon          String     @db.LongText
-  text          String?    @db.LongText
+  icon          String?    @db.LongText
+  text          String?    @db.LongText // заголовок страницы
   typeUrl       ETypeOfURL @default(CUSTOM_PAGE)
-  url           String     @db.LongText
+  url           String     @db.LongText //ссылка на эту стрницу
   hidden        Boolean    @default(true)
-  name          String?    @db.LongText
-  sections      String?    @db.LongText
-  isHaveSidebar Boolean
-  item          Json
+  sections      Json? // название секций и иконки к ним, html к секции
+  isHaveSidebar Boolean? // есть или нет сайдбар на странице
 }
 
 model Token {
