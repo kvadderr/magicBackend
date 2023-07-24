@@ -43,6 +43,11 @@ enum ETypeOfURL {
   DROPDOWN_LIST
 }
 
+enum EButtonColor {
+  GREEN
+  BLUE
+}
+
 model User {
   id Int @id @default(autoincrement())
 
@@ -174,6 +179,11 @@ model Product {
   blockSize         Int     @default(1)
   label             Int     @default(1)
   isBackgroundImage Boolean @default(false)
+
+  buttonColor EButtonColor @default(BLUE)
+  textButton  String?
+  iconButton  String?
+  height      Int?
 
   Purchase  Purchase[]
   Inventory Inventory[]
