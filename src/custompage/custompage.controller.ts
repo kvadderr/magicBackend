@@ -24,6 +24,11 @@ export class CustompageController {
     return this.pageService.getPageByUrl(url);
   }
 
+  @Get('/')
+  getAll() {
+    return this.pageService.getAll();
+  }
+
   @Put('/update')
   updatePage(@Body() dto: CreatePageDto) {
     return this.pageService.createPage(dto);

@@ -91,4 +91,8 @@ export class CustompageService {
 
     return 'Страница удалена';
   }
+
+  async getAll() {
+    return this.prisma.urlSettings.findMany();
+  }
 }
