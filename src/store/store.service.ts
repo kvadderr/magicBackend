@@ -68,35 +68,68 @@ export class StoreService {
             let productPrice = Math.round(
               product.price * product.saleDiscount * amount,
             );
-            productPrice -= user.bonusBalance;
-            await tx.user.update({
-              where: {
-                id: user.id,
-              },
-              data: {
-                bonusBalance: 0,
-                mainBalance: user.mainBalance - productPrice,
-              },
-            });
-            const purchase = await tx.purchase.create({
-              data: {
-                amount,
-                productId: product.id,
-                userId: user.id,
-                lostBonusBalance: user.bonusBalance,
-                lostMainBalance: productPrice - user.bonusBalance,
-                refund: false,
-              },
-            });
-            await tx.inventory.create({
-              data: {
-                amount,
-                productId: product.id,
-                serverTypeId: serverType.id,
-                historyOfPurchaseId: purchase.id,
-                userId: user.id,
-              },
-            });
+            //productPrice -= user.bonusBalance;
+            if (productPrice - user.bonusBalance < 0) {
+              await tx.user.update({
+                where: {
+                  id: user.id,
+                },
+                data: {
+                  bonusBalance: user.bonusBalance - productPrice,
+                },
+              });
+
+              const purchase = await tx.purchase.create({
+                data: {
+                  amount,
+                  productId: product.id,
+                  userId: user.id,
+                  lostBonusBalance: productPrice,
+                  lostMainBalance: 0,
+                  refund: false,
+                },
+              });
+              await tx.inventory.create({
+                data: {
+                  amount,
+                  productId: product.id,
+                  serverTypeId: serverType.id,
+                  historyOfPurchaseId: purchase.id,
+                  userId: user.id,
+                },
+              });
+            } else {
+              await tx.user.update({
+                where: {
+                  id: user.id,
+                },
+                data: {
+                  bonusBalance: 0,
+                  mainBalance:
+                    user.mainBalance + (user.bonusBalance - productPrice),
+                },
+              });
+
+              const purchase = await tx.purchase.create({
+                data: {
+                  amount,
+                  productId: product.id,
+                  userId: user.id,
+                  lostBonusBalance: user.bonusBalance,
+                  lostMainBalance: -(user.bonusBalance - productPrice),
+                  refund: false,
+                },
+              });
+              await tx.inventory.create({
+                data: {
+                  amount,
+                  productId: product.id,
+                  serverTypeId: serverType.id,
+                  historyOfPurchaseId: purchase.id,
+                  userId: user.id,
+                },
+              });
+            }
           }
         } else {
           if (

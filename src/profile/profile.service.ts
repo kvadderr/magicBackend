@@ -157,7 +157,41 @@ export class ProfileService {
       }
 
       await this.prisma.$transaction(async (tx) => {
-        const refundMoney = await tx.purchase.aggregate({
+        const refundMoney = await tx.purchase.findFirst({
+          where: {
+            id: removeItem.historyOfPurchaseId,
+            userId: user.id,
+          },
+        });
+
+        const refundPurchase = await tx.purchase.create({
+          data: {
+            userId: user.id,
+            amount: removeItem.amount,
+            refund: true,
+            productId: removeItem.productId,
+            lostBonusBalance: refundMoney.lostBonusBalance,
+            lostMainBalance: refundMoney.lostMainBalance,
+          },
+        });
+
+        await tx.inventory.delete({
+          where: {
+            id: removeItem.id,
+          },
+        });
+
+        await tx.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            mainBalance: user.mainBalance + refundMoney.lostMainBalance,
+            bonusBalance: user.bonusBalance + refundMoney.lostBonusBalance,
+          },
+        });
+
+        /* const refundMoney = await tx.purchase.aggregate({
           where: {
             productId: removeItem.id,
             refund: false,
@@ -192,7 +226,7 @@ export class ProfileService {
             mainBalance: user.mainBalance + refundMoney._sum.lostMainBalance,
             bonusBalance: user.bonusBalance + refundMoney._sum.lostBonusBalance,
           },
-        });
+        }); */
       });
       return {
         status: 'Success',
