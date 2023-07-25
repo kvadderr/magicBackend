@@ -120,8 +120,8 @@ model Inventory {
   historyOfPurchaseId Int
   user                User                        @relation(fields: [userId], references: [id])
   userId              Int
-  serverType          ServerType                  @relation(fields: [serverTypeId], references: [id])
-  serverTypeId        Int
+  serverType          ServerType?                 @relation(fields: [serverTypeId], references: [id])
+  serverTypeId        Int?
   server              Server?                     @relation(fields: [serverId], references: [id])
   serverId            Int?
   serverName          String?                     @db.LongText
