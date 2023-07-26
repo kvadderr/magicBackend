@@ -132,17 +132,27 @@ export class ServersService {
       if (pos != -1) {
         return {
           leaderboard: sortedArray.slice((page - 1) * count, page * count),
+          pages:
+            sortedArray.length > count
+              ? Math.ceil(sortedArray.length / count)
+              : 1,
           userData: data,
         };
       } else {
         return {
           leaderboard: sortedArray.slice((page - 1) * count, page * count),
+          pages:
+            sortedArray.length > count
+              ? Math.ceil(sortedArray.length / count)
+              : 1,
         };
       }
     }
 
     return {
       leaderboard: sortedArray.slice((page - 1) * count, page * count),
+      pages:
+        sortedArray.length > count ? Math.ceil(sortedArray.length / count) : 1,
     };
   }
 
