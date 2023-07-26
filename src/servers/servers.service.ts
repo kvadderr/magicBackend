@@ -136,7 +136,7 @@ export class ServersService {
             sortedArray.length > count
               ? Math.ceil(sortedArray.length / count)
               : 1,
-          userData: data,
+          userData: { data, pos },
         };
       } else {
         return {
