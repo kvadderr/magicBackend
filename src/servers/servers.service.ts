@@ -122,6 +122,7 @@ export class ServersService {
       let data;
       for (const player of sortedArray) {
         for (const playerId in player) {
+          player[playerId].pos = sortedArray.indexOf(player) + 1;
           if (player[playerId].data.name === isUser.name) {
             pos = sortedArray.indexOf(player);
             data = player[playerId];
@@ -136,7 +137,7 @@ export class ServersService {
             sortedArray.length > count
               ? Math.ceil(sortedArray.length / count)
               : 1,
-          userData: { data, pos },
+          userData: { data, pos: pos + 1 },
         };
       } else {
         return {
@@ -146,6 +147,12 @@ export class ServersService {
               ? Math.ceil(sortedArray.length / count)
               : 1,
         };
+      }
+    }
+
+    for (const player of sortedArray) {
+      for (const playerId in player) {
+        player[playerId].pos = sortedArray.indexOf(player) + 1;
       }
     }
 
@@ -218,6 +225,7 @@ type PlayerData = {
 type Player = {
   stats: PlayerStats;
   data: PlayerData;
+  pos?: number;
 };
 
 type PlayerObject = {
