@@ -19,7 +19,28 @@ export class StoreService {
           hidden: false,
         },
       });
-      return products;
+      const siteSettings = await this.prisma.baseSettings.findFirst();
+      if (siteSettings.saleMode) {
+        const result = products.map((el) => {
+          return {
+            ...el,
+            price: el.price * el.saleDiscount,
+            basePrice: el.price,
+            discount: (1 - el.saleDiscount) * 100,
+          };
+        });
+        return result;
+      } else {
+        const result = products.map((el) => {
+          return {
+            ...el,
+            price: el.price * el.discount,
+            basePrice: el.price,
+            discount: (1 - el.discount) * 100,
+          };
+        });
+        return result;
+      }
     } catch (error) {
       throw error;
     }
