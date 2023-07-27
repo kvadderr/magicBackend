@@ -49,6 +49,7 @@ export class StoreController {
         token,
         dto.productId,
         dto.amount,
+        dto.serverId,
       );
       if (data.status == 'Success') {
         res.status(200).json(data);

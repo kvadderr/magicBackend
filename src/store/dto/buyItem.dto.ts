@@ -5,4 +5,6 @@ export class BuyItemDto {
   readonly productId: number;
   @ApiProperty()
   readonly amount: number;
+  @ApiProperty()
+  readonly serverId: number;
 }

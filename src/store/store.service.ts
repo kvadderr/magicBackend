@@ -46,7 +46,12 @@ export class StoreService {
     }
   }
 
-  async buyItem(token: string, productId: number, amount: number) {
+  async buyItem(
+    token: string,
+    productId: number,
+    amount: number,
+    serverId: number,
+  ) {
     try {
       const product = await this.prisma.product.findUnique({
         where: {
@@ -69,6 +74,16 @@ export class StoreService {
           'Покупка недоступна для данного типа сервера',
           HttpStatus.FORBIDDEN,
         );
+      }
+
+      const server = await this.prisma.server.findFirst({
+        where: {
+          id: serverId,
+        },
+      });
+
+      if (!server) {
+        throw new HttpException('Сервер не найден', HttpStatus.BAD_REQUEST);
       }
       const isUser = await this.tokenService.validateAccessToken(token);
 
@@ -117,6 +132,7 @@ export class StoreService {
                   serverTypeId: serverType.id,
                   historyOfPurchaseId: purchase.id,
                   userId: user.id,
+                  serverId: server.id,
                 },
               });
             } else {
@@ -148,6 +164,7 @@ export class StoreService {
                   serverTypeId: serverType.id,
                   historyOfPurchaseId: purchase.id,
                   userId: user.id,
+                  serverId: server.id,
                 },
               });
             }
@@ -185,32 +202,17 @@ export class StoreService {
                 refund: false,
               },
             });
-            const itemInInventory = await tx.inventory.findFirst({
-              where: {
+
+            await tx.inventory.create({
+              data: {
+                amount,
+                productId: product.id,
+                serverTypeId: serverType.id,
+                historyOfPurchaseId: purchase.id,
                 userId: user.id,
-                productId: productId,
+                serverId: server.id,
               },
             });
-            if (!itemInInventory) {
-              await tx.inventory.create({
-                data: {
-                  amount,
-                  productId: product.id,
-                  serverTypeId: serverType.id,
-                  historyOfPurchaseId: purchase.id,
-                  userId: user.id,
-                },
-              });
-            } else {
-              await tx.inventory.update({
-                where: {
-                  id: itemInInventory.id,
-                },
-                data: {
-                  amount: itemInInventory.amount + amount,
-                },
-              });
-            }
           }
         }
       });
