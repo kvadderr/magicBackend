@@ -227,4 +227,33 @@ export class StoreService {
       };
     }
   }
+
+  async refill(money: number, token: string) {
+    try {
+      const isUser = await this.tokenService.validateAccessToken(token);
+
+      const user = await this.userService.findById(isUser.id);
+
+      await this.prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          mainBalance: user.mainBalance + money,
+        },
+      });
+
+      return {
+        status: 'Success',
+        data: 'Баланс пополнен',
+      };
+    } catch (error) {
+      console.log(error);
+
+      return {
+        status: 'Error',
+        message: error.message,
+      };
+    }
+  }
 }

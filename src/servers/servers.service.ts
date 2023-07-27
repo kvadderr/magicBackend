@@ -208,6 +208,14 @@ export class ServersService {
       pages: banlist.length > count ? Math.ceil(banlist.length / count) : 1,
     };
   }
+
+  async getServersByType(id: number) {
+    return this.prisma.server.findMany({
+      where: {
+        serverTypeId: id,
+      },
+    });
+  }
 }
 
 type PlayerStats = {

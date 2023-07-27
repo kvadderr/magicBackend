@@ -59,4 +59,9 @@ export class ServersController {
       searchValue,
     );
   }
+
+  @Get('/server/:id')
+  getServersByType(@Param('id') id: string) {
+    return this.serverService.getServersByType(Number(id));
+  }
 }

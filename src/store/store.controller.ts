@@ -74,4 +74,21 @@ export class StoreController {
       throw error.message;
     }
   }
+
+  @Post('/refill/:amount')
+  refillMoney(
+    @Headers('Authorization') authorization,
+    @Param('amount') amount: string,
+  ) {
+    try {
+      if (!authorization) {
+        throw new Error('Insert your token');
+      }
+      const token = authorization.split(' ')[1];
+
+      return this.storeService.refill(Number(amount), token);
+    } catch (error) {
+      throw error.message;
+    }
+  }
 }
