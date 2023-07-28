@@ -37,6 +37,11 @@ export class ServersController {
     }
   }
 
+  @Get('/top/:id')
+  getTop(@Param('id') id: string) {
+    return this.serverService.getTopOfLeaderboard(Number(id));
+  }
+
   @Get('/server')
   getServer() {
     return this.serverService.getServers();

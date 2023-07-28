@@ -132,7 +132,10 @@ export class ServersService {
 
       if (pos != -1) {
         return {
-          leaderboard: sortedArray.slice((page - 1) * count, page * count),
+          leaderboard: sortedArray.slice(
+            (page - 1) * count + 3,
+            page * count + 3,
+          ),
           pages:
             sortedArray.length > count
               ? Math.ceil(sortedArray.length / count)
@@ -141,7 +144,10 @@ export class ServersService {
         };
       } else {
         return {
-          leaderboard: sortedArray.slice((page - 1) * count, page * count),
+          leaderboard: sortedArray.slice(
+            (page - 1) * count + 3,
+            page * count + 3,
+          ),
           pages:
             sortedArray.length > count
               ? Math.ceil(sortedArray.length / count)
@@ -157,10 +163,46 @@ export class ServersService {
     }
 
     return {
-      leaderboard: sortedArray.slice((page - 1) * count, page * count),
+      leaderboard: sortedArray.slice((page - 1) * count + 3, page * count + 3),
       pages:
         sortedArray.length > count ? Math.ceil(sortedArray.length / count) : 1,
     };
+  }
+
+  async getTopOfLeaderboard(id: number) {
+    const serverInfo = await this.prisma.server.findFirst({
+      where: {
+        id,
+      },
+    });
+
+    if (!serverInfo) {
+      throw new HttpException('Сервер не найден', HttpStatus.BAD_REQUEST);
+    }
+
+    const leaderboard: PlayerObject = (
+      await firstValueFrom(
+        this.httpService.get(`${getLeaderboardURL}${serverInfo.serverID}`).pipe(
+          catchError((error: AxiosError) => {
+            console.error(error.response.data);
+            throw 'An error happened!';
+          }),
+        ),
+      )
+    ).data;
+
+    const sortedArray = Object.entries(leaderboard)
+      .sort(([, a], [, b]) => b.stats.kp_total - a.stats.kp_total)
+      .map(([key, value]) => ({ [key]: value }));
+
+    for (const player of sortedArray) {
+      for (const playerId in player) {
+        player[playerId].pos = sortedArray.indexOf(player) + 1;
+        if (sortedArray.indexOf(player) + 1 == 3) break;
+      }
+    }
+
+    return sortedArray.slice(0, 3);
   }
 
   async getServers() {
