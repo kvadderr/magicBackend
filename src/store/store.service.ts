@@ -1,4 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Server } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TokenService } from 'src/token/token.service';
 import { UsersService } from 'src/users/users.service';
@@ -76,14 +77,18 @@ export class StoreService {
         );
       }
 
-      const server = await this.prisma.server.findFirst({
-        where: {
-          id: serverId,
-        },
-      });
+      let server: Server;
 
-      if (!server) {
-        throw new HttpException('Сервер не найден', HttpStatus.BAD_REQUEST);
+      if (serverId !== 0) {
+        server = await this.prisma.server.findFirst({
+          where: {
+            id: serverId,
+          },
+        });
+
+        if (!server) {
+          throw new HttpException('Сервер не найден', HttpStatus.BAD_REQUEST);
+        }
       }
       const isUser = await this.tokenService.validateAccessToken(token);
 
@@ -125,14 +130,24 @@ export class StoreService {
                   refund: false,
                 },
               });
+
+              let inventoryObject: InventoryData = {
+                amount: amount,
+                productId: product.id,
+                serverTypeId: serverType.id,
+                historyOfPurchaseId: purchase.id,
+                userId: user.id,
+                serverId: null,
+                serverName: null,
+              };
+              if (serverId !== 0) {
+                inventoryObject.serverId = serverId;
+                inventoryObject.serverName = server.name;
+              }
+
               await tx.inventory.create({
                 data: {
-                  amount,
-                  productId: product.id,
-                  serverTypeId: serverType.id,
-                  historyOfPurchaseId: purchase.id,
-                  userId: user.id,
-                  serverId: server.id,
+                  ...inventoryObject,
                 },
               });
             } else {
@@ -157,14 +172,23 @@ export class StoreService {
                   refund: false,
                 },
               });
+              let inventoryObject: InventoryData = {
+                amount: amount,
+                productId: product.id,
+                serverTypeId: serverType.id,
+                historyOfPurchaseId: purchase.id,
+                userId: user.id,
+                serverId: null,
+                serverName: null,
+              };
+              if (serverId !== 0) {
+                inventoryObject.serverId = serverId;
+                inventoryObject.serverName = server.name;
+              }
+
               await tx.inventory.create({
                 data: {
-                  amount,
-                  productId: product.id,
-                  serverTypeId: serverType.id,
-                  historyOfPurchaseId: purchase.id,
-                  userId: user.id,
-                  serverId: server.id,
+                  ...inventoryObject,
                 },
               });
             }
@@ -203,14 +227,25 @@ export class StoreService {
               },
             });
 
+            let inventoryObject: InventoryData = {
+              amount: amount,
+              productId: product.id,
+              serverTypeId: serverType.id,
+              historyOfPurchaseId: purchase.id,
+              userId: user.id,
+              serverId: null,
+              serverName: null,
+            };
+            if (serverId !== 0) {
+              inventoryObject.serverId = serverId;
+              inventoryObject.serverName = server.name;
+            }
+
+            console.log(inventoryObject);
+
             await tx.inventory.create({
               data: {
-                amount,
-                productId: product.id,
-                serverTypeId: serverType.id,
-                historyOfPurchaseId: purchase.id,
-                userId: user.id,
-                serverId: server.id,
+                ...inventoryObject,
               },
             });
           }
@@ -218,7 +253,7 @@ export class StoreService {
       });
       return {
         status: 'Success',
-        data: 'Покупка успешно произведена',
+        data: { message: 'Покупка успешно произведена' },
       };
     } catch (error) {
       console.log(error);
@@ -235,20 +270,31 @@ export class StoreService {
       const isUser = await this.tokenService.validateAccessToken(token);
 
       const user = await this.userService.findById(isUser.id);
+      //TODO: Переделать реализацию добавления новой транзакции для юзера, т.к есть время между самой операцией и начислением суммы. Менять статус + роут для обратного запроса для платежки
+      await this.prisma.$transaction(async (tx) => {
+        const newMoney = await tx.transaction.create({
+          data: {
+            amount: money,
+            method: 'card',
+            userId: user.id,
+            status: 'SUCCESS',
+          },
+        });
 
-      await this.prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          mainBalance: user.mainBalance + money,
-        },
+        await this.prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            mainBalance: user.mainBalance + money,
+          },
+        });
+
+        return {
+          status: 'Success',
+          data: { message: 'Баланс пополнен' },
+        };
       });
-
-      return {
-        status: 'Success',
-        data: 'Баланс пополнен',
-      };
     } catch (error) {
       console.log(error);
 
@@ -259,3 +305,13 @@ export class StoreService {
     }
   }
 }
+
+type InventoryData = {
+  amount: number;
+  productId: number;
+  serverTypeId: number;
+  historyOfPurchaseId: number;
+  userId: number;
+  serverId: number | null;
+  serverName: string | null;
+};

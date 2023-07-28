@@ -230,7 +230,7 @@ export class ProfileService {
       });
       return {
         status: 'Success',
-        data: 'Возврат успешно произведен',
+        data: { message: 'Возврат успешно произведен' },
       };
     } catch (error) {
       console.log(error);
