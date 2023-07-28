@@ -253,7 +253,8 @@ export class StoreService {
       });
       return {
         status: 'Success',
-        data: { message: 'Покупка успешно произведена' },
+        data: {},
+        message: 'Покупка успешно произведена',
       };
     } catch (error) {
       console.log(error);
@@ -292,7 +293,8 @@ export class StoreService {
 
         return {
           status: 'Success',
-          data: { message: 'Баланс пополнен' },
+          data: {},
+          message: 'Баланс пополнен',
         };
       });
     } catch (error) {
