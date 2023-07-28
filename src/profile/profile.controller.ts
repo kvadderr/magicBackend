@@ -60,6 +60,7 @@ export class ProfileController {
     @Headers('Authorization') authorization,
     @Query('page') pageNumber: number,
     @Query('count') selectNumber: number,
+    @Query('sort') sort: string,
   ) {
     try {
       const token = authorization.split(' ')[1];
@@ -67,6 +68,7 @@ export class ProfileController {
         token,
         Number(pageNumber),
         Number(selectNumber),
+        sort,
       );
     } catch (error) {
       throw error;

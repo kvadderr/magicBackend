@@ -44,8 +44,12 @@ export class ProfileService {
     token: string,
     pageNumber: number,
     selectNumber: number,
+    sort: string,
   ) {
     try {
+      if (!sort) {
+        throw new HttpException('Enter type of sort', HttpStatus.BAD_REQUEST);
+      }
       const isUser = await this.tokenService.validateAccessToken(token);
 
       if (!isUser) {
@@ -96,7 +100,14 @@ export class ProfileService {
 
       const result: any[] = [...transactions, ...purchases, ...transfers];
 
-      result.sort((a, b) => b.createdAt - a.createdAt);
+      if (sort === 'desc') {
+        result.sort((a, b) => b.createdAt - a.createdAt);
+      } else if (sort === 'asc') {
+        result.sort((a, b) => a.createdAt - b.createdAt);
+      }
+
+      console.log(pageNumber, selectNumber);
+
       return result.slice(
         (pageNumber - 1) * selectNumber,
         pageNumber * selectNumber,
