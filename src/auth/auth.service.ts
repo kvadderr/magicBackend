@@ -102,8 +102,6 @@ export class AuthService {
   }
 
   async refresh(token: string, userAgent: UserAgentDto) {
-    console.log(userAgent);
-
     const userData = await this.tokenService.validateRefreshToken(
       token,
       userAgent,

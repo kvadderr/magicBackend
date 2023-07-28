@@ -45,8 +45,6 @@ export class TokenService {
 
   async validateRefreshToken(token: string, userAgent: UserAgentDto) {
     try {
-      console.log(process.env.JWT_REFTESH_SECRET);
-
       const userData = this.jwtService.verify(token, {
         secret: process.env.JWT_REFTESH_SECRET,
       }) as JwtPayload;
@@ -54,8 +52,6 @@ export class TokenService {
       const currentToken = await this.prisma.token.findFirst({
         where: { token, userId: userData.id },
       });
-
-      console.log(currentToken);
 
       if (
         !currentToken ||

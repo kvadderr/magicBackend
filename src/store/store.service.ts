@@ -241,8 +241,6 @@ export class StoreService {
               inventoryObject.serverName = server.name;
             }
 
-            console.log(inventoryObject);
-
             await tx.inventory.create({
               data: {
                 ...inventoryObject,
