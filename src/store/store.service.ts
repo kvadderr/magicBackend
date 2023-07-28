@@ -280,7 +280,7 @@ export class StoreService {
           },
         });
 
-        await this.prisma.user.update({
+        await tx.user.update({
           where: {
             id: user.id,
           },
@@ -288,13 +288,12 @@ export class StoreService {
             mainBalance: user.mainBalance + money,
           },
         });
-
-        return {
-          status: 'Success',
-          data: {},
-          message: 'Баланс пополнен',
-        };
       });
+      return {
+        status: 'Success',
+        data: {},
+        message: 'Баланс пополнен',
+      };
     } catch (error) {
       console.log(error);
 
