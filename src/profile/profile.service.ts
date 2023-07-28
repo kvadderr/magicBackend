@@ -98,8 +98,8 @@ export class ProfileService {
 
       result.sort((a, b) => b.createdAt - a.createdAt);
       return result.slice(
+        (pageNumber - 1) * selectNumber,
         pageNumber * selectNumber,
-        (pageNumber + 1) * selectNumber,
       );
     } catch (error) {
       console.error(error);

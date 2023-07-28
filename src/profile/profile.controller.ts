@@ -59,14 +59,14 @@ export class ProfileController {
   getDetails(
     @Headers('Authorization') authorization,
     @Query('page') pageNumber: number,
-    @Query('select') selectNumber: number,
+    @Query('count') selectNumber: number,
   ) {
     try {
       const token = authorization.split(' ')[1];
       return this.profileService.getDetalization(
         token,
-        pageNumber,
-        selectNumber,
+        Number(pageNumber),
+        Number(selectNumber),
       );
     } catch (error) {
       throw error;
