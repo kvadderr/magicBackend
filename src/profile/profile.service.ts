@@ -12,7 +12,7 @@ export class ProfileService {
     private readonly userSerivce: UsersService,
   ) {}
 
-  async getInventory(token: string) {
+  async getInventory(token: string, pageNumber: number, selectNumber: number) {
     try {
       const isUser = await this.tokenService.validateAccessToken(token);
 
@@ -25,7 +25,7 @@ export class ProfileService {
 
       const user = await this.userSerivce.findById(isUser.id);
 
-      return this.prisma.inventory.findMany({
+      const result = await this.prisma.inventory.findMany({
         where: {
           userId: user.id,
           status: 'INVENTORY',
@@ -34,6 +34,16 @@ export class ProfileService {
           product: true,
         },
       });
+      return {
+        result: result.slice(
+          (pageNumber - 1) * selectNumber,
+          pageNumber * selectNumber,
+        ),
+        pages:
+          result.length > pageNumber
+            ? Math.ceil(result.length / pageNumber)
+            : 1,
+      };
     } catch (error) {
       console.error(error);
       throw error;
@@ -106,12 +116,16 @@ export class ProfileService {
         result.sort((a, b) => a.createdAt - b.createdAt);
       }
 
-      console.log(pageNumber, selectNumber);
-
-      return result.slice(
-        (pageNumber - 1) * selectNumber,
-        pageNumber * selectNumber,
-      );
+      return {
+        result: result.slice(
+          (pageNumber - 1) * selectNumber,
+          pageNumber * selectNumber,
+        ),
+        pages:
+          result.length > pageNumber
+            ? Math.ceil(result.length / pageNumber)
+            : 1,
+      };
     } catch (error) {
       console.error(error);
       throw error;

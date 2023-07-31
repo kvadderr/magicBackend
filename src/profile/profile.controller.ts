@@ -33,7 +33,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
-  @Get('/inventory')
+  @Get('/inventory/?')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Инвентарь пользователя' })
   @ApiOkResponse({
@@ -42,10 +42,18 @@ export class ProfileController {
     type: InventoryResponseDto,
   })
   @UseGuards(JwtAuthGuard)
-  getInventory(@Headers('Authorization') authorization) {
+  getInventory(
+    @Headers('Authorization') authorization,
+    @Query('page') pageNumber: number,
+    @Query('count') selectNumber: number,
+  ) {
     try {
       const token = authorization.split(' ')[1];
-      return this.profileService.getInventory(token);
+      return this.profileService.getInventory(
+        token,
+        Number(pageNumber),
+        Number(selectNumber),
+      );
     } catch (error) {
       throw error;
     }
