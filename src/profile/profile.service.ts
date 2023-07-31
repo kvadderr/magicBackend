@@ -12,7 +12,7 @@ export class ProfileService {
     private readonly userSerivce: UsersService,
   ) {}
 
-  async getInventory(token: string, pageNumber: number, selectNumber: number) {
+  async getInventory(token: string, page: number, count: number) {
     try {
       const isUser = await this.tokenService.validateAccessToken(token);
 
@@ -35,14 +35,8 @@ export class ProfileService {
         },
       });
       return {
-        result: result.slice(
-          (pageNumber - 1) * selectNumber,
-          pageNumber * selectNumber,
-        ),
-        pages:
-          result.length > pageNumber
-            ? Math.ceil(result.length / pageNumber)
-            : 1,
+        result: result.slice((page - 1) * count, page * count),
+        pages: result.length > count ? Math.ceil(result.length / count) : 1,
       };
     } catch (error) {
       console.error(error);
@@ -52,8 +46,8 @@ export class ProfileService {
 
   async getDetalization(
     token: string,
-    pageNumber: number,
-    selectNumber: number,
+    page: number,
+    count: number,
     sort: string,
   ) {
     try {
@@ -117,14 +111,8 @@ export class ProfileService {
       }
 
       return {
-        result: result.slice(
-          (pageNumber - 1) * selectNumber,
-          pageNumber * selectNumber,
-        ),
-        pages:
-          result.length > pageNumber
-            ? Math.ceil(result.length / pageNumber)
-            : 1,
+        result: result.slice((page - 1) * count, page * count),
+        pages: result.length > count ? Math.ceil(result.length / count) : 1,
       };
     } catch (error) {
       console.error(error);
