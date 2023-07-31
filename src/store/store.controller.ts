@@ -92,4 +92,9 @@ export class StoreController {
       throw error.message;
     }
   }
+
+  @Get('/types')
+  getTypes() {
+    return this.storeService.getTypes();
+  }
 }

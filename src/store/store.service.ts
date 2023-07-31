@@ -303,6 +303,10 @@ export class StoreService {
       };
     }
   }
+
+  async getTypes() {
+    return this.prisma.serverType.findMany();
+  }
 }
 
 type InventoryData = {
