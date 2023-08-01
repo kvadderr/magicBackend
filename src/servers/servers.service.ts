@@ -130,6 +130,8 @@ export class ServersService {
         }
       }
 
+      const leaderArr = sortedArray.slice(2);
+
       if (pos != -1) {
         return {
           leaderboard: sortedArray.slice(
@@ -137,21 +139,18 @@ export class ServersService {
             page * count + 3,
           ),
           pages:
-            sortedArray.length > count
-              ? Math.ceil(sortedArray.length / count)
-              : 1,
+            leaderArr.length > count ? Math.round(leaderArr.length / count) : 1,
           userData: { data, pos: pos + 1 },
         };
       } else {
+        const leaderArr = sortedArray.slice(2);
         return {
           leaderboard: sortedArray.slice(
             (page - 1) * count + 3,
             page * count + 3,
           ),
           pages:
-            sortedArray.length > count
-              ? Math.ceil(sortedArray.length / count)
-              : 1,
+            leaderArr.length > count ? Math.round(leaderArr.length / count) : 1,
         };
       }
     }
@@ -162,10 +161,12 @@ export class ServersService {
       }
     }
 
+    const leaderArr = sortedArray.slice(2);
+
     return {
       leaderboard: sortedArray.slice((page - 1) * count + 3, page * count + 3),
       pages:
-        sortedArray.length > count ? Math.ceil(sortedArray.length / count) : 1,
+        leaderArr.length > count ? Math.round(leaderArr.length / count) : 1,
     };
   }
 
