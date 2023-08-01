@@ -69,4 +69,9 @@ export class ServersController {
   getServersByType(@Param('id') id: string) {
     return this.serverService.getServersByType(Number(id));
   }
+
+  @Get('/base')
+  getBaseSettings() {
+    return this.serverService.getBaseSettings();
+  }
 }
