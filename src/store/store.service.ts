@@ -307,6 +307,17 @@ export class StoreService {
   async getTypes() {
     return this.prisma.serverType.findMany();
   }
+
+  async getBaseSettings() {
+    return this.prisma.baseSettings.findFirst({
+      select: {
+        saleMode: true,
+        panelURLs: true,
+        mainPage: true,
+        header: true,
+      },
+    });
+  }
 }
 
 type InventoryData = {

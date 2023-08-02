@@ -97,4 +97,9 @@ export class StoreController {
   getTypes() {
     return this.storeService.getTypes();
   }
+
+  @Get('/base')
+  getBaseSettings() {
+    return this.storeService.getBaseSettings();
+  }
 }
