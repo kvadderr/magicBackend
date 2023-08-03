@@ -33,26 +33,6 @@ export class AuthController {
   @UseGuards(AuthGuard('steam'))
   async redirectToSteamAuth(): Promise<void> {}
 
-  /* @Get('steam/return')
-  @UseGuards(AuthGuard('steam'))
-  async handleSteamAuthCallback(
-    @Req() req,
-    @Res() res: Response,
-  ): Promise<any> {
-    const data = await this.authService.signUpIn(req.user.steamId);
-    console.log(data);
-
-    return res
-      .cookie('refreshToken', data.refreshToken, {
-        maxAge: 30 * 24 * 60 * 1000,
-        sameSite: 'lax',
-      })
-      .json({
-        accessToken: data.accessToken,
-        user: data.user,
-      });
-  } */
-
   @Get('/refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
     const data = await this.authService.refresh(req.cookies.refreshToken, {

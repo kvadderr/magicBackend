@@ -51,9 +51,16 @@ export class StoreService {
     token: string,
     productId: number,
     amount: number,
-    serverId: number,
+    serverId?: number,
   ) {
     try {
+      if (amount < 1) {
+        throw new HttpException(
+          'Количество товара не может быть меньше 1',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
       const product = await this.prisma.product.findUnique({
         where: {
           id: productId,
@@ -80,6 +87,7 @@ export class StoreService {
       let server: Server;
 
       if (serverId !== 0) {
+        //TODO: уточнить у Леры момент с serverId. Сделать его опциональным?
         server = await this.prisma.server.findFirst({
           where: {
             id: serverId,
@@ -93,7 +101,7 @@ export class StoreService {
       const isUser = await this.tokenService.validateAccessToken(token);
 
       const user = await this.userService.findById(isUser.id);
-      //TODO: Реализовать механизм проверки промокодов на скидку на определенный предмет #OUTSTAFF OR BASE REALIZATION
+      //TODO: Реализовать механизм проверки промокодов на скидку на определенный предмет #OUTSTAFF
       const saleSetting = await this.prisma.baseSettings.findFirst();
       const result = await this.prisma.$transaction(async (tx) => {
         if (saleSetting.saleMode) {
