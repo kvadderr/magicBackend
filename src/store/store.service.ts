@@ -51,7 +51,7 @@ export class StoreService {
     token: string,
     productId: number,
     amount: number,
-    serverId?: number,
+    serverId: number,
   ) {
     try {
       if (amount < 1) {
@@ -326,6 +326,101 @@ export class StoreService {
       },
     });
   }
+
+  async getCurrentPrice(productId: number, amount: number) {
+    try {
+      if (amount < 1) {
+        throw new HttpException(
+          'Количество предметов не может быть меньше 1',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const product = await this.prisma.product.findFirst({
+        where: {
+          id: productId,
+        },
+      });
+
+      if (!product) {
+        throw new HttpException('Предмет не найден', HttpStatus.BAD_REQUEST);
+      }
+
+      const settings = await this.getBaseSettings();
+
+      if (settings.saleMode) {
+        const currentPrice = product.price * amount * product.saleDiscount;
+        return currentPrice;
+      }
+
+      const currentPrice = product.price * amount * product.discount;
+      return currentPrice;
+    } catch (error) {
+      console.log(error);
+
+      return {
+        status: 'Error',
+        message: error.message,
+      };
+    }
+  }
+
+  async getPriceForCurrency(productId: number, amount?: number, rubs?: number) {
+    try {
+      if (rubs && amount) {
+        throw new HttpException(
+          'На вход не может придти оба параметра',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const product = await this.prisma.product.findFirst({
+        where: {
+          id: productId,
+        },
+      });
+
+      if (!product) {
+        throw new HttpException('Предмет не найден', HttpStatus.BAD_REQUEST);
+      }
+
+      //console.log(product.productContent);
+
+      const settings = await this.getBaseSettings();
+      let finalPrice;
+
+      if (settings.saleMode) {
+        if (amount) {
+          const packs: Packs = JSON.parse(
+            JSON.stringify(product.productContent),
+          );
+
+          const index = packs.data.find((item, i) => {
+            if (item.count == amount) {
+              if (item.procent > 100 - product.saleDiscount * 100) {
+                finalPrice =
+                  amount * product.price * ((100 - item.procent) / 100);
+              }
+              return (finalPrice =
+                amount * product.price * product.saleDiscount);
+            }
+          });
+          return finalPrice;
+        } else if (rubs) {
+          finalPrice = Math.round(
+            rubs / (product.price * product.saleDiscount),
+          );
+        }
+      }
+      return finalPrice;
+    } catch (error) {
+      console.log(error);
+
+      return {
+        status: 'Error',
+        message: error.message,
+      };
+    }
+  }
 }
 
 type InventoryData = {
@@ -336,4 +431,12 @@ type InventoryData = {
   userId: number;
   serverId: number | null;
   serverName: string | null;
+};
+
+type Packs = {
+  data: PackData[];
+};
+type PackData = {
+  count: number;
+  procent: number;
 };

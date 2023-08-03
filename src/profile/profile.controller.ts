@@ -120,4 +120,28 @@ export class ProfileController {
       res.status(400).json(data);
     }
   }
+
+  @Put('/updateServer/?')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'обновление сервера активации предмета' })
+  async updateServer(
+    @Query('id') id: string,
+    @Query('serverId') serverId: string,
+    @Headers('Authorization') authorization,
+    @Res() res: Response,
+  ) {
+    const token = authorization.split(' ')[1];
+    const data = await this.profileService.updateServer(
+      Number(id),
+      Number(serverId),
+      token,
+    );
+    if (data.status == 'Success') {
+      res.status(200).json(data);
+    } else {
+      res.status(400).json(data);
+    }
+  }
 }

@@ -104,8 +104,24 @@ export class StoreController {
     return this.storeService.getBaseSettings();
   }
 
-  /* @Get('/price/?')
-  getCurrentPrice(@Query('id') id: string, @Query('amount') amount: string) {
-    return this.storeService.getCurrentPrice()
-  } */
+  @Get('/price/?')
+  getCurrentPrice(
+    @Query('id') productId: string,
+    @Query('amount') amount: string,
+  ) {
+    return this.storeService.getCurrentPrice(Number(productId), Number(amount));
+  }
+
+  @Get('/currency/?')
+  getPriceForCurrency(
+    @Query('id') productId: string,
+    @Query('amount') amount: string,
+    @Query('rubs') rubs: string,
+  ) {
+    return this.storeService.getPriceForCurrency(
+      Number(productId),
+      Number(amount),
+      Number(rubs),
+    );
+  }
 }

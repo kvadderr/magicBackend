@@ -255,4 +255,68 @@ export class ProfileService {
       };
     }
   }
+
+  async updateServer(inventoryItemId: number, serverId: number, token: string) {
+    try {
+      const isUser = await this.tokenService.validateAccessToken(token);
+
+      if (!isUser) {
+        throw new HttpException(
+          'Пользователь не найден',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const user = await this.userSerivce.findById(isUser.id);
+
+      const updateItem = await this.prisma.inventory.findFirst({
+        where: {
+          id: inventoryItemId,
+          userId: user.id,
+        },
+        include: {
+          product: true,
+        },
+      });
+
+      if (updateItem.status == 'ON_SERVER') {
+        throw new HttpException(
+          'Предмет уже активирован',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      const server = await this.prisma.server.findFirst({
+        where: {
+          id: serverId,
+        },
+      });
+
+      if (!server) {
+        throw new HttpException('Сервер не найден', HttpStatus.BAD_REQUEST);
+      }
+
+      await this.prisma.inventory.update({
+        where: {
+          id: updateItem.id,
+        },
+        data: {
+          serverId: server.id,
+          serverName: server.name,
+        },
+      });
+
+      return {
+        status: 'Success',
+        message: `Предмет ${updateItem.product.name} будет активирован на ${server.name}`,
+      };
+    } catch (error) {
+      console.log(error);
+
+      return {
+        status: 'Error',
+        message: error.message,
+      };
+    }
+  }
 }
