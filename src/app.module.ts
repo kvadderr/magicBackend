@@ -11,6 +11,7 @@ import { StoreModule } from './store/store.module';
 import { CustompageModule } from './custompage/custompage.module';
 import { ServersModule } from './servers/servers.module';
 import { UserAgentMiddleware } from './auth/middleware/req.middleware';
+import { ApiRustModule } from './api-rust/api-rust.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UserAgentMiddleware } from './auth/middleware/req.middleware';
     StoreModule,
     CustompageModule,
     ServersModule,
+    ApiRustModule,
   ],
   controllers: [],
   providers: [],
