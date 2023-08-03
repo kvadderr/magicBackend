@@ -11,6 +11,7 @@ import { StoreModule } from './store/store.module';
 import { CustompageModule } from './custompage/custompage.module';
 import { ServersModule } from './servers/servers.module';
 import { UserAgentMiddleware } from './auth/middleware/req.middleware';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UserAgentMiddleware } from './auth/middleware/req.middleware';
     StoreModule,
     CustompageModule,
     ServersModule,
+    NotificationModule,
   ],
   controllers: [],
   providers: [],

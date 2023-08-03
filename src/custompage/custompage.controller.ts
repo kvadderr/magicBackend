@@ -19,9 +19,9 @@ export class CustompageController {
     return this.pageService.createPage(dto);
   }
 
-  @Get('/custom/:url')
-  getPageByUrl(@Param('url') url: string) {
-    return this.pageService.getPageByUrl(url);
+  @Get('/custom/:id')
+  getPageByUrl(@Param('id') id: string) {
+    return this.pageService.getPageByUrl(Number(id));
   }
 
   @Get('/')
@@ -29,13 +29,13 @@ export class CustompageController {
     return this.pageService.getAll();
   }
 
-  @Put('/update')
+  /* @Put('/update')
   updatePage(@Body() dto: CreatePageDto) {
     return this.pageService.createPage(dto);
-  }
+  } */
 
-  @Delete('/delete/:url')
+  /* @Delete('/delete/:url')
   deletePage(@Param('url') url: string) {
     return this.pageService.deletePage(url);
-  }
+  } */
 }
