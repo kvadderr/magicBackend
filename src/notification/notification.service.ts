@@ -3,21 +3,23 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom, map } from 'rxjs';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { TokenService } from 'src/token/token.service';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class NotificationService {
   constructor(
     private httpService: HttpService,
     private prisma: PrismaService,
+    private tokenService: TokenService,
+    private userService: UsersService,
   ) {}
 
-  async generateCode(steamId: string) {
+  async generateCode(token: string) {
     try {
-      const user = await this.prisma.user.findFirst({
-        where: {
-          steamID: steamId,
-        },
-      });
+      const isUser = await this.tokenService.validateAccessToken(token);
+
+      const user = await this.userService.findById(isUser.id);
 
       if (!user) {
         throw new HttpException(
@@ -34,7 +36,7 @@ export class NotificationService {
 
       const newCode = this.httpService
         .get(
-          `https://vk.magicrust.ru/api/getTestAlertCode?apiKey=${settings.apiKey}&steamid=${steamId}`,
+          `https://vk.magicrust.ru/api/getTestAlertCode?apiKey=${settings.apiKey}&steamid=${user.steamID}`,
         )
         .pipe(map((resp) => resp.data));
 
