@@ -32,6 +32,7 @@ export class ProfileService {
         },
         include: {
           product: true,
+          serverType: true,
         },
       });
       return {
