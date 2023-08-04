@@ -35,7 +35,7 @@ export class ProfileService {
           serverType: true,
         },
       });
-      result.sort((a, b) => a.createdAt.valueOf() - b.createdAt.valueOf());
+      result.sort((a, b) => b.createdAt.valueOf() - a.createdAt.valueOf());
       return {
         result: result.slice((page - 1) * count, page * count),
         pages: result.length > count ? Math.ceil(result.length / count) : 1,
