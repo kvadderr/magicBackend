@@ -397,18 +397,37 @@ export class StoreService {
           const index = packs.data.find((item, i) => {
             if (item.count == amount) {
               if (item.procent > 100 - product.saleDiscount * 100) {
-                finalPrice =
-                  amount * product.price * ((100 - item.procent) / 100);
+                return (finalPrice =
+                  amount * product.price * ((100 - item.procent) / 100));
               }
               return (finalPrice =
                 amount * product.price * product.saleDiscount);
             }
           });
-          return finalPrice;
+          return (finalPrice = amount * product.price * product.discount);
         } else if (rubs) {
           finalPrice = Math.round(
             rubs / (product.price * product.saleDiscount),
           );
+        }
+      } else {
+        if (amount) {
+          const packs: Packs = JSON.parse(
+            JSON.stringify(product.productContent),
+          );
+
+          const index = packs.data.find((item, i) => {
+            if (item.count == amount) {
+              if (item.procent > 100 - product.discount * 100) {
+                return (finalPrice =
+                  amount * product.price * ((100 - item.procent) / 100));
+              }
+              return (finalPrice = amount * product.price * product.discount);
+            }
+          });
+          return (finalPrice = amount * product.price * product.discount);
+        } else if (rubs) {
+          finalPrice = Math.round(rubs / (product.price * product.discount));
         }
       }
       return finalPrice;
