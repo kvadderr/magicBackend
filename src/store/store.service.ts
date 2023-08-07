@@ -30,6 +30,9 @@ export class StoreService {
             discount: (1 - el.saleDiscount) * 100,
           };
         });
+        result.sort((a, b) => {
+          return a.number - b.number;
+        });
         return result;
       } else {
         const result = products.map((el) => {
@@ -39,6 +42,9 @@ export class StoreService {
             basePrice: el.price,
             discount: (1 - el.discount) * 100,
           };
+        });
+        result.sort((a, b) => {
+          return a.number - b.number;
         });
         return result;
       }
