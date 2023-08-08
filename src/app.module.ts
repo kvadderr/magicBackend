@@ -11,6 +11,7 @@ import { StoreModule } from './store/store.module';
 import { CustompageModule } from './custompage/custompage.module';
 import { ServersModule } from './servers/servers.module';
 import { UserAgentMiddleware } from './auth/middleware/req.middleware';
+import { ApiRustModule } from './api-rust/api-rust.module';
 import { NotificationModule } from './notification/notification.module';
 
 @Module({
@@ -25,7 +26,9 @@ import { NotificationModule } from './notification/notification.module';
     StoreModule,
     CustompageModule,
     ServersModule,
+    ApiRustModule,
     NotificationModule,
+
   ],
   controllers: [],
   providers: [],
