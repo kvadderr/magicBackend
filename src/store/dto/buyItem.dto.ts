@@ -6,5 +6,5 @@ export class BuyItemDto {
   @ApiProperty()
   readonly amount: number;
   @ApiProperty()
-  readonly serverId: number;
+  readonly serverId?: number;
 }

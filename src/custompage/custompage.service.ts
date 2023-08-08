@@ -33,12 +33,17 @@ export class CustompageService {
     return newPage;
   }
 
-  async getPageByUrl(url: string) {
-    return this.prisma.urlSettings.findFirst({
+  async getPageByUrl(id: number) {
+    const page = await this.prisma.urlSettings.findFirst({
       where: {
-        url,
+        id,
       },
     });
+
+    if (page.hidden) {
+      throw new HttpException('Страница недоступна', HttpStatus.FORBIDDEN);
+    }
+    return page;
   }
 
   async updPage(dto: CreatePageDto) {
@@ -93,6 +98,18 @@ export class CustompageService {
   }
 
   async getAll() {
-    return this.prisma.urlSettings.findMany();
+    return this.prisma.urlSettings.findMany({
+      where: {
+        hidden: false,
+        typeUrl: 'CUSTOM_PAGE',
+      },
+      select: {
+        icon: true,
+        id: true,
+        isHaveSidebar: true,
+        url: true,
+        typeUrl: true,
+      },
+    });
   }
 }

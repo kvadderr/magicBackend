@@ -5,6 +5,7 @@ import {
   Headers,
   Param,
   Post,
+  Query,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -101,5 +102,26 @@ export class StoreController {
   @Get('/base')
   getBaseSettings() {
     return this.storeService.getBaseSettings();
+  }
+
+  @Get('/price/?')
+  getCurrentPrice(
+    @Query('id') productId: string,
+    @Query('amount') amount: string,
+  ) {
+    return this.storeService.getCurrentPrice(Number(productId), Number(amount));
+  }
+
+  @Get('/currency/?')
+  getPriceForCurrency(
+    @Query('id') productId: string,
+    @Query('amount') amount: string,
+    @Query('rubs') rubs: string,
+  ) {
+    return this.storeService.getPriceForCurrency(
+      Number(productId),
+      Number(amount),
+      Number(rubs),
+    );
   }
 }
