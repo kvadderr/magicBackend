@@ -235,3 +235,10 @@ model Token {
   browser    String?
   os         String?
 }
+
+model Contacts {
+  id   Int    @id @default(autoincrement())
+  name String
+  url  String
+  icon String
+}
