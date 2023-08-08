@@ -19,7 +19,7 @@ export class NotificationService {
     try {
       const isUser = await this.tokenService.validateAccessToken(token);
 
-      const user = await this.userService.findById(isUser.id);
+      const user = await this.userService.findBySteamId(isUser.steamId);
 
       if (!user) {
         throw new HttpException(

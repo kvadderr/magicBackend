@@ -6,7 +6,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
-  @Get('/:id')
+  @Get('/')
   @UseGuards(JwtAuthGuard)
   getNotificationCode(@Headers('Authorization') authorization) {
     const token = authorization.split(' ')[1];

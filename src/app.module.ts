@@ -13,6 +13,8 @@ import { ServersModule } from './servers/servers.module';
 import { UserAgentMiddleware } from './auth/middleware/req.middleware';
 import { ApiRustModule } from './api-rust/api-rust.module';
 import { NotificationModule } from './notification/notification.module';
+import { StatiscticModule } from './statisctic/statisctic.module';
+import { ContactsModule } from './contacts/contacts.module';
 
 @Module({
   imports: [
@@ -28,7 +30,8 @@ import { NotificationModule } from './notification/notification.module';
     ServersModule,
     ApiRustModule,
     NotificationModule,
-
+    StatiscticModule,
+    ContactsModule,
   ],
   controllers: [],
   providers: [],
