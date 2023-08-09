@@ -30,8 +30,8 @@ export class StatiscticService {
     };
   }
 
-  async profitToday(token?: string) {
-    await this.checkAdmin(token);
+  async profitToday() {
+    //
 
     const currentDate = new Date(); // Получаем текущую дату
     const startOfDay = new Date(currentDate);
@@ -43,9 +43,7 @@ export class StatiscticService {
     return this.getProfit(startOfDay, endOfDay);
   }
 
-  async profitLast30Days(token?: string) {
-    await this.checkAdmin(token);
-
+  async profitLast30Days() {
     const currentDate = new Date();
     const endDate = new Date(currentDate);
     const startDate = new Date(currentDate);
@@ -56,9 +54,7 @@ export class StatiscticService {
     return this.getProfit(startDate, endDate);
   }
 
-  async profitInThisMonth(token?: string) {
-    await this.checkAdmin(token);
-
+  async profitInThisMonth() {
     const currentDate = new Date();
     const startOfMonth = new Date(
       currentDate.getFullYear(),
@@ -69,9 +65,7 @@ export class StatiscticService {
     return this.getProfit(startOfMonth, currentDate);
   }
 
-  async ProfitAllTime(token?: string) {
-    await this.checkAdmin(token);
-
+  async ProfitAllTime() {
     const result = await this.prisma.purchase.aggregate({
       _sum: {
         lostMainBalance: true,
@@ -83,32 +77,11 @@ export class StatiscticService {
   }
 
   //TODO: Найти способ группировать по дням. В настоящее время в призме нет вариантов реализации
-  async profitPerDay(token?: string) {
-    await this.checkAdmin(token);
-
-    const currentDate = new Date();
-    const startOfMonth = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      1,
-    );
-
-    const dailyIncome = await this.prisma.purchase.groupBy({
-      by: ['amount'],
-      where: {
-        createdAt: {
-          gte: startOfMonth,
-          lte: currentDate,
-        },
-      },
-      _sum: {
-        lostMainBalance: true,
-      },
-    });
+  async profitPerDay() {
+    //const dailyIncome = await this.prisma.purchase.
   }
 
   async ProfitRandomDate(startDate: Date, endDate: Date, token: string) {
-    await this.checkAdmin(token);
     return this.getProfit(startDate, endDate);
   }
 
@@ -141,23 +114,5 @@ export class StatiscticService {
       month: item.createdAt,
       depositCount: item._count.amount,
     })); */
-  }
-
-  async checkAdmin(token: string) {
-    const isUser = await this.tokenService.validateAccessToken(token);
-
-    if (!isUser) {
-      throw new HttpException(
-        'Пользователь не найден или срок действия токена истек',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const user = await this.userService.findById(isUser.id);
-    if (user.role != 'ADMINISTRATOR') {
-      throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
-    }
-
-    return;
   }
 }
