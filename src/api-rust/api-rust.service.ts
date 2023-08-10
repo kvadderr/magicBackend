@@ -190,7 +190,7 @@ export class ApiRustService {
     serverID: number,
     token: string,
     steamid: string,
-    queueid: string,
+    queueid: number,
   ) {
     try {
       const serverCandidate = await this.prisma.server.findFirst({
@@ -216,7 +216,7 @@ export class ApiRustService {
       await this.prisma.$transaction(async (tx) => {
         const item = await tx.inventory.findFirst({
           where: {
-            id: Number(queueid),
+            id: queueid,
             userId: user.id,
           },
         });
@@ -366,7 +366,7 @@ export class ApiRustService {
     discount?: number,
     productId?: number,
   ) {
-    //TODO: спросить у Оли - делать ли этот метод
+    //TODO: спросить у Оли - делать ли этот метод - NO
   }
 
   async userAddBonus(
