@@ -34,4 +34,18 @@ export class StatiscticController {
   ProfitAllTime() {
     return this.statService.ProfitAllTime();
   }
+
+  @Get('/perDay')
+  @UseGuards(RolesGuard)
+  @Roles('ADMINISTRATOR')
+  profitPerDay() {
+    return this.statService.profitPerDay();
+  }
+
+  @Get('/avgDeposite')
+  @UseGuards(RolesGuard)
+  @Roles('ADMINISTRATOR')
+  avarageDeposit() {
+    return this.statService.avarageDeposit();
+  }
 }

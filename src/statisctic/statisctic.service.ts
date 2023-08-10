@@ -70,7 +70,6 @@ export class StatiscticService {
     };
   }
 
-  //TODO: Найти способ группировать по дням. В настоящее время в призме нет вариантов реализации
   async profitPerDay() {
     const timeOfFirstPurchase = `${
       (await this.prisma.purchase.findFirst()).createdAt
@@ -95,7 +94,7 @@ export class StatiscticService {
     return this.getProfit(startDate, endDate);
   }
 
-  async avarageDeposit(token: string) {
+  async avarageDeposit() {
     const avarageDeposit = await this.prisma.transaction.aggregate({
       _avg: {
         amount: true,
@@ -124,5 +123,31 @@ export class StatiscticService {
       month: item.createdAt,
       depositCount: item._count.amount,
     })); */
+  }
+
+  async profitOnServer(serverId: number) {
+    const server = await this.prisma.server.findFirstOrThrow({
+      where: {
+        id: serverId,
+      },
+    });
+
+    const products = await this.prisma.inventory.findMany({
+      where: {
+        status: 'ON_SERVER',
+        serverId: server.id,
+      },
+      include: {
+        purchase: true,
+      },
+    });
+
+    let profit = 0;
+
+    products.forEach((el) => {
+      profit += el.purchase.lostMainBalance;
+    });
+
+    return profit;
   }
 }
