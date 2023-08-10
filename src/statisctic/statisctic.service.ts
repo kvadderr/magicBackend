@@ -96,6 +96,9 @@ export class StatiscticService {
 
   async avarageDeposit() {
     const avarageDeposit = await this.prisma.transaction.aggregate({
+      where: {
+        status: 'SUCCESS',
+      },
       _avg: {
         amount: true,
       },
