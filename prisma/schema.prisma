@@ -99,6 +99,7 @@ model Purchase {
   Inventory        Inventory[]
   product          Product     @relation(fields: [productId], references: [id])
   productId        Int
+  dateOfPurchase   String?
 }
 
 model Transfers {

@@ -134,6 +134,15 @@ export class StoreService {
                 },
               });
 
+              const currentDate = new Date();
+
+              // Преобразование к формату DD.MM.YY
+              const day = String(currentDate.getDate()).padStart(2, '0');
+              const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+              const year = String(currentDate.getFullYear()).slice(-2);
+
+              const formattedDate = `${day}.${month}.${year}`;
+
               const purchase = await tx.purchase.create({
                 data: {
                   amount,
@@ -142,6 +151,7 @@ export class StoreService {
                   lostBonusBalance: productPrice,
                   lostMainBalance: 0,
                   refund: false,
+                  dateOfPurchase: formattedDate,
                 },
               });
 
@@ -176,6 +186,15 @@ export class StoreService {
                 },
               });
 
+              const currentDate = new Date();
+
+              // Преобразование к формату DD.MM.YY
+              const day = String(currentDate.getDate()).padStart(2, '0');
+              const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+              const year = String(currentDate.getFullYear()).slice(-2);
+
+              const formattedDate = `${day}.${month}.${year}`;
+
               const purchase = await tx.purchase.create({
                 data: {
                   amount,
@@ -184,6 +203,7 @@ export class StoreService {
                   lostBonusBalance: user.bonusBalance,
                   lostMainBalance: -(user.bonusBalance - productPrice),
                   refund: false,
+                  dateOfPurchase: formattedDate,
                 },
               });
               let inventoryObject: InventoryData = {
@@ -230,6 +250,16 @@ export class StoreService {
                 mainBalance: user.mainBalance - productPrice,
               },
             });
+
+            const currentDate = new Date();
+
+            // Преобразование к формату DD.MM.YY
+            const day = String(currentDate.getDate()).padStart(2, '0');
+            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+            const year = String(currentDate.getFullYear()).slice(-2);
+
+            const formattedDate = `${day}.${month}.${year}`;
+
             const purchase = await tx.purchase.create({
               data: {
                 amount,
@@ -238,6 +268,7 @@ export class StoreService {
                 lostBonusBalance: user.bonusBalance,
                 lostMainBalance: productPrice - user.bonusBalance,
                 refund: false,
+                dateOfPurchase: formattedDate,
               },
             });
 
@@ -283,6 +314,13 @@ export class StoreService {
       const isUser = await this.tokenService.validateAccessToken(token);
 
       const user = await this.userService.findById(isUser.id);
+
+      if (money < 1) {
+        throw new HttpException(
+          'Сумма для пополнения не может быть меньше 1',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       //TODO: Переделать реализацию добавления новой транзакции для юзера, т.к есть время между самой операцией и начислением суммы. Менять статус + роут для обратного запроса для платежки
       await this.prisma.$transaction(async (tx) => {
         const newMoney = await tx.transaction.create({

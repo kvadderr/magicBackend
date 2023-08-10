@@ -6,11 +6,7 @@ import { PrismaClient, Prisma } from '@prisma/client';
 
 @Injectable()
 export class StatiscticService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly tokenService: TokenService,
-    private readonly userService: UsersService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async getProfit(startDate: Date, endDate: Date) {
     const profit = await this.prisma.purchase.aggregate({
@@ -31,8 +27,6 @@ export class StatiscticService {
   }
 
   async profitToday() {
-    //
-
     const currentDate = new Date(); // Получаем текущую дату
     const startOfDay = new Date(currentDate);
     startOfDay.setHours(0, 0, 0, 0); // Устанавливаем время на начало дня
@@ -78,7 +72,23 @@ export class StatiscticService {
 
   //TODO: Найти способ группировать по дням. В настоящее время в призме нет вариантов реализации
   async profitPerDay() {
-    //const dailyIncome = await this.prisma.purchase.
+    const timeOfFirstPurchase = `${
+      (await this.prisma.purchase.findFirst()).createdAt
+    }`;
+
+    const date = new Date(timeOfFirstPurchase);
+
+    const groupedPurchases = await this.prisma.purchase.groupBy({
+      by: ['dateOfPurchase'],
+      orderBy: {
+        dateOfPurchase: 'asc',
+      },
+      _sum: {
+        lostMainBalance: true,
+      },
+    });
+
+    return groupedPurchases;
   }
 
   async ProfitRandomDate(startDate: Date, endDate: Date, token: string) {
