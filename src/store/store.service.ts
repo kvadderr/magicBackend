@@ -27,7 +27,7 @@ export class StoreService {
             ...el,
             price: el.price * el.saleDiscount,
             basePrice: el.price,
-            discount: (1 - el.saleDiscount) * 100,
+            discount: (100 - el.saleDiscount) / 100,
           };
         });
         result.sort((a, b) => {
@@ -40,7 +40,7 @@ export class StoreService {
             ...el,
             price: el.price * el.discount,
             basePrice: el.price,
-            discount: (1 - el.discount) * 100,
+            discount: (100 - el.discount) / 100,
           };
         });
         result.sort((a, b) => {
@@ -93,7 +93,6 @@ export class StoreService {
       let server: Server;
 
       if (serverId !== 0) {
-        //TODO: уточнить у Леры момент с serverId. Сделать его опциональным?
         server = await this.prisma.server.findFirst({
           where: {
             id: serverId,
@@ -131,6 +130,7 @@ export class StoreService {
                 },
                 data: {
                   bonusBalance: user.bonusBalance - productPrice,
+                  lastActivity: new Date(),
                 },
               });
 
@@ -169,11 +169,32 @@ export class StoreService {
                 inventoryObject.serverName = server.name;
               }
 
-              await tx.inventory.create({
-                data: {
-                  ...inventoryObject,
-                },
-              });
+              if (product.type == 'SETS_OF_PRODUCTS') {
+                const packs: ItemPacks = JSON.parse(
+                  JSON.stringify(product.productContent),
+                );
+                packs.data.forEach(async (el) => {
+                  await tx.inventory.create({
+                    data: {
+                      amount: el.amount,
+                      productId: el.itemId,
+                      serverId: inventoryObject.serverId,
+                      serverName: inventoryObject.serverName,
+                      serverTypeId: inventoryObject.serverTypeId,
+                      userId: inventoryObject.userId,
+                      historyOfPurchaseId: inventoryObject.historyOfPurchaseId,
+                      isPartOfPack: true,
+                      packId: product.id,
+                    },
+                  });
+                });
+              } else {
+                await tx.inventory.create({
+                  data: {
+                    ...inventoryObject,
+                  },
+                });
+              }
             } else {
               await tx.user.update({
                 where: {
@@ -183,6 +204,7 @@ export class StoreService {
                   bonusBalance: 0,
                   mainBalance:
                     user.mainBalance + (user.bonusBalance - productPrice),
+                  lastActivity: new Date(),
                 },
               });
 
@@ -220,11 +242,32 @@ export class StoreService {
                 inventoryObject.serverName = server.name;
               }
 
-              await tx.inventory.create({
-                data: {
-                  ...inventoryObject,
-                },
-              });
+              if (product.type == 'SETS_OF_PRODUCTS') {
+                const packs: ItemPacks = JSON.parse(
+                  JSON.stringify(product.productContent),
+                );
+                packs.data.forEach(async (el) => {
+                  await tx.inventory.create({
+                    data: {
+                      amount: el.amount,
+                      productId: el.itemId,
+                      serverId: inventoryObject.serverId,
+                      serverName: inventoryObject.serverName,
+                      serverTypeId: inventoryObject.serverTypeId,
+                      userId: inventoryObject.userId,
+                      historyOfPurchaseId: inventoryObject.historyOfPurchaseId,
+                      isPartOfPack: true,
+                      packId: product.id,
+                    },
+                  });
+                });
+              } else {
+                await tx.inventory.create({
+                  data: {
+                    ...inventoryObject,
+                  },
+                });
+              }
             }
           }
         } else {
@@ -232,7 +275,7 @@ export class StoreService {
             user.mainBalance + user.bonusBalance <
             product.price * product.discount * amount
           ) {
-            return new HttpException(
+            throw new HttpException(
               'Недостаточно средств для покупки',
               HttpStatus.FORBIDDEN,
             );
@@ -240,57 +283,153 @@ export class StoreService {
             let productPrice = Math.round(
               product.price * product.discount * amount,
             );
-            productPrice -= user.bonusBalance;
-            await tx.user.update({
-              where: {
-                id: user.id,
-              },
-              data: {
-                bonusBalance: 0,
-                mainBalance: user.mainBalance - productPrice,
-              },
-            });
+            //productPrice -= user.bonusBalance;
+            if (productPrice - user.bonusBalance < 0) {
+              await tx.user.update({
+                where: {
+                  id: user.id,
+                },
+                data: {
+                  bonusBalance: user.bonusBalance - productPrice,
+                  lastActivity: new Date(),
+                },
+              });
 
-            const currentDate = new Date();
+              const currentDate = new Date();
 
-            // Преобразование к формату DD.MM.YY
-            const day = String(currentDate.getDate()).padStart(2, '0');
-            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-            const year = String(currentDate.getFullYear()).slice(-2);
+              // Преобразование к формату DD.MM.YY
+              const day = String(currentDate.getDate()).padStart(2, '0');
+              const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+              const year = String(currentDate.getFullYear()).slice(-2);
 
-            const formattedDate = `${day}.${month}.${year}`;
+              const formattedDate = `${day}.${month}.${year}`;
 
-            const purchase = await tx.purchase.create({
-              data: {
-                amount,
+              const purchase = await tx.purchase.create({
+                data: {
+                  amount,
+                  productId: product.id,
+                  userId: user.id,
+                  lostBonusBalance: productPrice,
+                  lostMainBalance: 0,
+                  refund: false,
+                  dateOfPurchase: formattedDate,
+                },
+              });
+
+              let inventoryObject: InventoryData = {
+                amount: amount,
                 productId: product.id,
+                serverTypeId: serverType.id,
+                historyOfPurchaseId: purchase.id,
                 userId: user.id,
-                lostBonusBalance: user.bonusBalance,
-                lostMainBalance: productPrice - user.bonusBalance,
-                refund: false,
-                dateOfPurchase: formattedDate,
-              },
-            });
+                serverId: null,
+                serverName: null,
+              };
+              if (serverId !== 0) {
+                inventoryObject.serverId = serverId;
+                inventoryObject.serverName = server.name;
+              }
 
-            let inventoryObject: InventoryData = {
-              amount: amount,
-              productId: product.id,
-              serverTypeId: serverType.id,
-              historyOfPurchaseId: purchase.id,
-              userId: user.id,
-              serverId: null,
-              serverName: null,
-            };
-            if (serverId !== 0) {
-              inventoryObject.serverId = serverId;
-              inventoryObject.serverName = server.name;
+              if (product.type == 'SETS_OF_PRODUCTS') {
+                const packs: ItemPacks = JSON.parse(
+                  JSON.stringify(product.productContent),
+                );
+                packs.data.forEach(async (el) => {
+                  await tx.inventory.create({
+                    data: {
+                      amount: el.amount,
+                      productId: el.itemId,
+                      serverId: inventoryObject.serverId,
+                      serverName: inventoryObject.serverName,
+                      serverTypeId: inventoryObject.serverTypeId,
+                      userId: inventoryObject.userId,
+                      historyOfPurchaseId: inventoryObject.historyOfPurchaseId,
+                      isPartOfPack: true,
+                      packId: product.id,
+                    },
+                  });
+                });
+              } else {
+                await tx.inventory.create({
+                  data: {
+                    ...inventoryObject,
+                  },
+                });
+              }
+            } else {
+              await tx.user.update({
+                where: {
+                  id: user.id,
+                },
+                data: {
+                  bonusBalance: 0,
+                  mainBalance:
+                    user.mainBalance + (user.bonusBalance - productPrice),
+                  lastActivity: new Date(),
+                },
+              });
+
+              const currentDate = new Date();
+
+              // Преобразование к формату DD.MM.YY
+              const day = String(currentDate.getDate()).padStart(2, '0');
+              const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+              const year = String(currentDate.getFullYear()).slice(-2);
+
+              const formattedDate = `${day}.${month}.${year}`;
+
+              const purchase = await tx.purchase.create({
+                data: {
+                  amount,
+                  productId: product.id,
+                  userId: user.id,
+                  lostBonusBalance: user.bonusBalance,
+                  lostMainBalance: -(user.bonusBalance - productPrice),
+                  refund: false,
+                  dateOfPurchase: formattedDate,
+                },
+              });
+              let inventoryObject: InventoryData = {
+                amount: amount,
+                productId: product.id,
+                serverTypeId: serverType.id,
+                historyOfPurchaseId: purchase.id,
+                userId: user.id,
+                serverId: null,
+                serverName: null,
+              };
+              if (serverId !== 0) {
+                inventoryObject.serverId = serverId;
+                inventoryObject.serverName = server.name;
+              }
+
+              if (product.type == 'SETS_OF_PRODUCTS') {
+                const packs: ItemPacks = JSON.parse(
+                  JSON.stringify(product.productContent),
+                );
+                packs.data.forEach(async (el) => {
+                  await tx.inventory.create({
+                    data: {
+                      amount: el.amount,
+                      productId: el.itemId,
+                      serverId: inventoryObject.serverId,
+                      serverName: inventoryObject.serverName,
+                      serverTypeId: inventoryObject.serverTypeId,
+                      userId: inventoryObject.userId,
+                      historyOfPurchaseId: inventoryObject.historyOfPurchaseId,
+                      isPartOfPack: true,
+                      packId: product.id,
+                    },
+                  });
+                });
+              } else {
+                await tx.inventory.create({
+                  data: {
+                    ...inventoryObject,
+                  },
+                });
+              }
             }
-
-            await tx.inventory.create({
-              data: {
-                ...inventoryObject,
-              },
-            });
           }
         }
       });
@@ -430,7 +569,6 @@ export class StoreService {
       //console.log(product.productContent);
 
       const settings = await this.getBaseSettings();
-      let finalPrice;
 
       if (settings.saleMode) {
         if (amount) {
@@ -438,25 +576,35 @@ export class StoreService {
             JSON.stringify(product.productContent),
           );
 
-          const index = packs.data.find((item, i) => {
+          const finalPrice = packs.data.find((item) => {
             if (item.count == amount) {
-              if (item.procent > 100 - product.saleDiscount * 100) {
-                return {
-                  finalPrice:
-                    amount * product.price * ((100 - item.procent) / 100),
-                  type: 'money',
-                };
-              }
+              return item;
+            }
+          });
+
+          if (finalPrice) {
+            if (finalPrice.procent > product.saleDiscount) {
               return {
-                finalPrice: amount * product.price * product.saleDiscount,
+                finalPrice: Math.round(
+                  amount * product.price * ((100 - finalPrice.procent) / 100),
+                ),
                 type: 'money',
               };
             }
-          });
-          return {
-            finalPrice: amount * product.price * product.discount,
-            type: 'money',
-          };
+            return {
+              finalPrice: Math.round(
+                amount * product.price * ((100 - product.saleDiscount) / 100),
+              ),
+              type: 'money',
+            };
+          } else {
+            return {
+              finalPrice: Math.round(
+                amount * product.price * ((100 - product.saleDiscount) / 100),
+              ),
+              type: 'money',
+            };
+          }
         } else if (rubs) {
           return {
             amount: Math.round(rubs / (product.price * product.saleDiscount)),
@@ -469,25 +617,35 @@ export class StoreService {
             JSON.stringify(product.productContent),
           );
 
-          const index = packs.data.find((item, i) => {
+          const finalPrice = packs.data.find((item) => {
             if (item.count == amount) {
-              if (item.procent > 100 - product.discount * 100) {
-                return {
-                  finalPrice:
-                    amount * product.price * ((100 - item.procent) / 100),
-                  type: 'money',
-                };
-              }
+              return item;
+            }
+          });
+
+          if (finalPrice) {
+            if (finalPrice.procent > product.discount) {
               return {
-                finalPrice: amount * product.price * product.discount,
+                finalPrice: Math.round(
+                  amount * product.price * ((100 - finalPrice.procent) / 100),
+                ),
                 type: 'money',
               };
             }
-          });
-          return {
-            finalPrice: amount * product.price * product.discount,
-            type: 'money',
-          };
+            return {
+              finalPrice: Math.round(
+                amount * product.price * ((100 - product.discount) / 100),
+              ),
+              type: 'money',
+            };
+          } else {
+            return {
+              finalPrice: Math.round(
+                amount * product.price * ((100 - product.discount) / 100),
+              ),
+              type: 'money',
+            };
+          }
         } else if (rubs) {
           return {
             amount: Math.round(rubs / (product.price * product.discount)),
@@ -522,4 +680,14 @@ type Packs = {
 type PackData = {
   count: number;
   procent: number;
+};
+
+type ItemPacks = {
+  data: ItemPacksData[];
+};
+
+type ItemPacksData = {
+  icon: string;
+  amount: number;
+  itemId: number;
 };

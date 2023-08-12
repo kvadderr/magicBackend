@@ -113,7 +113,7 @@ export class ProfileController {
     @Res() res: Response,
   ) {
     const token = authorization.split(' ')[1];
-    const data = await this.profileService.undoPurchase(token, +id);
+    const data = await this.profileService.undoPurchase(token, Number(id));
     if (data.status == 'Success') {
       res.status(200).json(data);
     } else {

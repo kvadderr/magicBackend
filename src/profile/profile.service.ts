@@ -171,42 +171,45 @@ export class ProfileService {
         );
       }
 
-      await this.prisma.$transaction(async (tx) => {
-        const refundMoney = await tx.purchase.findFirst({
-          where: {
-            id: removeItem.historyOfPurchaseId,
-            userId: user.id,
-          },
-        });
+      if (removeItem.isPartOfPack && removeItem.isCanBeRefund)
+        //!
 
-        const refundPurchase = await tx.purchase.create({
-          data: {
-            userId: user.id,
-            amount: removeItem.amount,
-            refund: true,
-            productId: removeItem.productId,
-            lostBonusBalance: refundMoney.lostBonusBalance,
-            lostMainBalance: refundMoney.lostMainBalance,
-          },
-        });
+        await this.prisma.$transaction(async (tx) => {
+          const refundMoney = await tx.purchase.findFirst({
+            where: {
+              id: removeItem.historyOfPurchaseId,
+              userId: user.id,
+            },
+          });
 
-        await tx.inventory.delete({
-          where: {
-            id: removeItem.id,
-          },
-        });
+          const refundPurchase = await tx.purchase.create({
+            data: {
+              userId: user.id,
+              amount: removeItem.amount,
+              refund: true,
+              productId: removeItem.productId,
+              lostBonusBalance: refundMoney.lostBonusBalance,
+              lostMainBalance: refundMoney.lostMainBalance,
+            },
+          });
 
-        await tx.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            mainBalance: user.mainBalance + refundMoney.lostMainBalance,
-            bonusBalance: user.bonusBalance + refundMoney.lostBonusBalance,
-          },
-        });
+          await tx.inventory.delete({
+            where: {
+              id: removeItem.id,
+            },
+          });
 
-        /* const refundMoney = await tx.purchase.aggregate({
+          await tx.user.update({
+            where: {
+              id: user.id,
+            },
+            data: {
+              mainBalance: user.mainBalance + refundMoney.lostMainBalance,
+              bonusBalance: user.bonusBalance + refundMoney.lostBonusBalance,
+            },
+          });
+
+          /* const refundMoney = await tx.purchase.aggregate({
           where: {
             productId: removeItem.id,
             refund: false,
@@ -242,7 +245,7 @@ export class ProfileService {
             bonusBalance: user.bonusBalance + refundMoney._sum.lostBonusBalance,
           },
         }); */
-      });
+        });
       return {
         status: 'Success',
         data: {},

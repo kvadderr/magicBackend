@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE `Inventory` ADD COLUMN `isCanBeRefund` BOOLEAN NOT NULL DEFAULT true,
+    ADD COLUMN `isPartOfPack` BOOLEAN NULL,
+    ADD COLUMN `packId` INTEGER NULL;
