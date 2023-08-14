@@ -1,4 +1,4 @@
-import { Controller, Get, Headers, UseGuards } from '@nestjs/common';
+import { Controller, Get, Headers, Query, UseGuards } from '@nestjs/common';
 import { StatiscticService } from './statisctic.service';
 import { Roles } from 'src/auth/guards/roles-guard.decorator';
 import { RolesGuard } from 'src/auth/guards/auth.guard';
@@ -42,10 +42,61 @@ export class StatiscticController {
     return this.statService.profitPerDay();
   }
 
+  @Get('/randomDate/?')
+  @UseGuards(RolesGuard)
+  @Roles('ADMINISTRATOR')
+  ProfitRandomDate(
+    @Query('startDate') startDate: Date,
+    @Query('endDate') endDate: Date,
+  ) {
+    return this.statService.ProfitRandomDate(startDate, endDate);
+  }
+
   @Get('/avgDeposite')
   @UseGuards(RolesGuard)
   @Roles('ADMINISTRATOR')
   avarageDeposit() {
     return this.statService.avarageDeposit();
+  }
+
+  @Get('/avgDepositePerUser')
+  @UseGuards(RolesGuard)
+  @Roles('ADMINISTRATOR')
+  avarageDepositPerUser() {
+    return this.statService.avarageDepositPerUser();
+  }
+
+  @Get('/profitPerServer')
+  @UseGuards(RolesGuard)
+  @Roles('ADMINISTRATOR')
+  profitOnServer() {
+    return this.statService.profitOnServer();
+  }
+
+  @Get('/profitPerServerOnRandomDate/?')
+  @UseGuards(RolesGuard)
+  @Roles('ADMINISTRATOR')
+  profitPerServerOnRandomDate(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return this.statService.profitPerServerOnRandomDate(startDate, endDate);
+  }
+
+  @Get('/profitPerItem')
+  @UseGuards(RolesGuard)
+  @Roles('ADMINISTRATOR')
+  profitPerItem() {
+    return this.statService.profitPerItem();
+  }
+
+  @Get('/profitPerItemOnRandomDate/?')
+  @UseGuards(RolesGuard)
+  @Roles('ADMINISTRATOR')
+  profitPerItemOnRandomDate(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return this.statService.profitPerServerOnRandomDate(startDate, endDate);
   }
 }

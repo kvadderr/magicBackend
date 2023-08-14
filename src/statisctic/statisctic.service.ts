@@ -11,6 +11,7 @@ export class StatiscticService {
   async getProfit(startDate: Date, endDate: Date) {
     const profit = await this.prisma.purchase.aggregate({
       where: {
+        refund: false,
         createdAt: {
           gte: startDate,
           lte: endDate,
@@ -21,9 +22,7 @@ export class StatiscticService {
       },
     });
 
-    return {
-      profit: profit._sum.lostMainBalance,
-    };
+    return profit._sum.lostMainBalance;
   }
 
   async profitToday() {
@@ -34,7 +33,7 @@ export class StatiscticService {
     const endOfDay = new Date(currentDate);
     endOfDay.setHours(23, 59, 59, 999); // Устанавливаем время на конец дня
 
-    return this.getProfit(startOfDay, endOfDay);
+    return { profit: this.getProfit(startOfDay, endOfDay), date: currentDate };
   }
 
   async profitLast30Days() {
@@ -45,7 +44,7 @@ export class StatiscticService {
     startDate.setHours(0, 0, 0, 0);
     console.log(startDate, endDate);
 
-    return this.getProfit(startDate, endDate);
+    return { profit: this.getProfit(startDate, endDate), startDate, endDate };
   }
 
   async profitInThisMonth() {
@@ -56,11 +55,18 @@ export class StatiscticService {
       1,
     );
 
-    return this.getProfit(startOfMonth, currentDate);
+    return {
+      profit: this.getProfit(startOfMonth, currentDate),
+      startOfMonth,
+      currentDate,
+    };
   }
 
   async ProfitAllTime() {
     const result = await this.prisma.purchase.aggregate({
+      where: {
+        refund: false,
+      },
       _sum: {
         lostMainBalance: true,
       },
@@ -79,6 +85,9 @@ export class StatiscticService {
 
     const groupedPurchases = await this.prisma.purchase.groupBy({
       by: ['dateOfPurchase'],
+      where: {
+        refund: false,
+      },
       orderBy: {
         dateOfPurchase: 'asc',
       },
@@ -90,8 +99,8 @@ export class StatiscticService {
     return groupedPurchases;
   }
 
-  async ProfitRandomDate(startDate: Date, endDate: Date, token: string) {
-    return this.getProfit(startDate, endDate);
+  async ProfitRandomDate(startDate: Date, endDate: Date) {
+    return { profit: this.getProfit(startDate, endDate), startDate, endDate };
   }
 
   async avarageDeposit() {
@@ -110,47 +119,197 @@ export class StatiscticService {
   }
 
   async avarageDepositPerUser() {
-    //@ts-ignore //TODO: как группировать по дате?
-    /* const result = await this.prisma.transaction.groupBy({
-      by: ['user', Prisma.date({ part: 'month', value: 'createdAt' })],
-      _count: {
-        amount: true,
-      },
+    const currentDate = new Date();
+    const endDate = new Date(currentDate);
+    const startDate = new Date(currentDate);
+    startDate.setDate(currentDate.getDate() - 30);
+    startDate.setHours(0, 0, 0, 0);
+    console.log(startDate, endDate);
+
+    const averageDepositsPerMonth = await this.prisma.transaction.groupBy({
+      by: ['userId'],
       where: {
-        method: 'deposit',
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      _count: {
+        createdAt: true,
       },
     });
 
-    const userMonthlyDeposits = result.map((item) => ({
-      userId: item.user.id,
-      month: item.createdAt,
-      depositCount: item._count.amount,
-    })); */
+    let countOfDeposits = 0;
+    averageDepositsPerMonth.forEach((record) => {
+      countOfDeposits += record._count.createdAt;
+    });
+    return {
+      avgCount: countOfDeposits / averageDepositsPerMonth.length,
+      startDate,
+      endDate,
+    };
   }
 
-  async profitOnServer(serverId: number) {
-    const server = await this.prisma.server.findFirstOrThrow({
-      where: {
-        id: serverId,
-      },
-    });
+  async profitOnServer() {
+    const servers = await this.prisma.server.findMany();
 
-    const products = await this.prisma.inventory.findMany({
-      where: {
-        status: 'ON_SERVER',
-        serverId: server.id,
-      },
-      include: {
-        purchase: true,
-      },
-    });
+    const profitServers = await Promise.all(
+      servers.map(async (server) => {
+        const products = await this.prisma.inventory.findMany({
+          where: {
+            status: 'ON_SERVER',
+            serverId: server.id,
+          },
+          include: {
+            purchase: true,
+          },
+        });
 
-    let profit = 0;
+        let profit = 0;
+        let countOfPartPacks = 0;
 
-    products.forEach((el) => {
-      profit += el.purchase.lostMainBalance;
-    });
+        products.forEach((el) => {
+          if (el.isPartOfPack) {
+            if (countOfPartPacks == 0) {
+              profit += el.purchase.lostMainBalance;
+            }
+            countOfPartPacks++;
+          } else {
+            profit += el.purchase.lostMainBalance;
+            countOfPartPacks = 0;
+          }
+        });
 
+        return { serverName: server.name, profit };
+      }),
+    );
+
+    return profitServers;
+  }
+
+  async profitPerServerOnRandomDate(startDate: string, endDate: string) {
+    const servers = await this.prisma.server.findMany();
+
+    const correctStartDate = new Date(startDate);
+    const correctEndDate = new Date(endDate);
+
+    const profitServers = await Promise.all(
+      servers.map(async (server) => {
+        const products = await this.prisma.inventory.findMany({
+          where: {
+            status: 'ON_SERVER',
+            serverId: server.id,
+            purchase: {
+              createdAt: {
+                gte: correctStartDate,
+                lte: correctEndDate,
+              },
+            },
+          },
+          include: {
+            purchase: true,
+          },
+        });
+
+        let profit = 0;
+        let countOfPartPacks = 0;
+
+        products.forEach((el) => {
+          if (el.isPartOfPack) {
+            if (countOfPartPacks == 0) {
+              profit += el.purchase.lostMainBalance;
+            }
+            countOfPartPacks++;
+          } else {
+            profit += el.purchase.lostMainBalance;
+            countOfPartPacks = 0;
+          }
+        });
+
+        return { serverName: server.name, profit };
+      }),
+    );
+
+    return profitServers;
+  }
+
+  async profitPerItem() {
+    const items = await this.prisma.product.findMany();
+
+    const profit = await Promise.all(
+      items.map(async (item) => {
+        const purchases = await this.prisma.purchase.aggregate({
+          where: {
+            refund: false,
+            productId: item.id,
+          },
+          _sum: {
+            lostMainBalance: true,
+          },
+        });
+        return { item: item.name, profit: purchases._sum.lostMainBalance };
+      }),
+    );
+    return profit;
+  }
+
+  async profitPerItemOnRandomDate(
+    startDate: string,
+    endDate: string,
+    serverId?: number,
+  ) {
+    const correctStartDate = new Date(startDate);
+    const correctEndDate = new Date(endDate);
+
+    if (serverId) {
+      const server = await this.prisma.server.findFirstOrThrow({
+        where: {
+          id: serverId,
+        },
+      });
+      const items = await this.prisma.product.findMany();
+
+      const profit = await Promise.all(
+        items.map(async (item) => {
+          const purchases = await this.prisma.purchase.aggregate({
+            where: {
+              refund: false,
+              productId: item.id,
+              createdAt: {
+                gte: correctStartDate,
+                lte: correctEndDate,
+              },
+            },
+            _sum: {
+              lostMainBalance: true,
+            },
+          });
+          return { item: item.name, profit: purchases._sum.lostMainBalance };
+        }),
+      );
+      return profit;
+    }
+
+    const items = await this.prisma.product.findMany();
+
+    const profit = await Promise.all(
+      items.map(async (item) => {
+        const purchases = await this.prisma.purchase.aggregate({
+          where: {
+            refund: false,
+            productId: item.id,
+            createdAt: {
+              gte: correctStartDate,
+              lte: correctEndDate,
+            },
+          },
+          _sum: {
+            lostMainBalance: true,
+          },
+        });
+        return { item: item.name, profit: purchases._sum.lostMainBalance };
+      }),
+    );
     return profit;
   }
 }

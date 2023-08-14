@@ -6,13 +6,6 @@ export class ContactsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getAll() {
-    return this.prisma.baseSettings.findFirst({
-      where: {
-        id: 2,
-      },
-      select: {
-        panelURLs: true,
-      },
-    });
+    return this.prisma.contacts.findMany();
   }
 }

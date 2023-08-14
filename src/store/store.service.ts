@@ -407,11 +407,13 @@ export class StoreService {
                 const packs: ItemPacks = JSON.parse(
                   JSON.stringify(product.productContent),
                 );
-                packs.data.forEach(async (el) => {
+                console.log(packs.data);
+
+                for (let i = 0; i < packs.data.length; i++) {
                   await tx.inventory.create({
                     data: {
-                      amount: el.amount,
-                      productId: el.itemId,
+                      amount: packs.data[i].amount,
+                      productId: packs.data[i].itemId,
                       serverId: inventoryObject.serverId,
                       serverName: inventoryObject.serverName,
                       serverTypeId: inventoryObject.serverTypeId,
@@ -421,7 +423,28 @@ export class StoreService {
                       packId: product.id,
                     },
                   });
-                });
+                }
+
+                /* await Promise.all([
+                  packs.data.map(async (el) => {
+                    console.log(el);
+
+                    await tx.inventory.create({
+                      data: {
+                        amount: el.amount,
+                        productId: el.itemId,
+                        serverId: inventoryObject.serverId,
+                        serverName: inventoryObject.serverName,
+                        serverTypeId: inventoryObject.serverTypeId,
+                        userId: inventoryObject.userId,
+                        historyOfPurchaseId:
+                          inventoryObject.historyOfPurchaseId,
+                        isPartOfPack: true,
+                        packId: product.id,
+                      },
+                    });
+                  }),
+                ]); */
               } else {
                 await tx.inventory.create({
                   data: {

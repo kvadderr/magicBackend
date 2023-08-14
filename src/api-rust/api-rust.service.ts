@@ -225,12 +225,32 @@ export class ApiRustService {
           throw new HttpException('Item not found', HttpStatus.BAD_REQUEST);
         }
 
+        if (item.isPartOfPack) {
+          const partsOfPacks = await tx.inventory.findMany({
+            where: {
+              packId: item.packId,
+              historyOfPurchaseId: item.historyOfPurchaseId,
+            },
+          });
+          for (let i = 0; i < partsOfPacks.length; i++) {
+            await tx.inventory.update({
+              where: {
+                id: partsOfPacks[i].id,
+              },
+              data: {
+                isCanBeRefund: false,
+              },
+            });
+          }
+        }
+
         await tx.inventory.update({
           where: {
             id: item.id,
           },
           data: {
             status: 'ON_SERVER',
+            isCanBeRefund: false,
           },
         });
       });

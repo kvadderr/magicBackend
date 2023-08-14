@@ -171,8 +171,25 @@ export class ProfileService {
         );
       }
 
-      if (removeItem.isPartOfPack && removeItem.isCanBeRefund)
-        //!
+      if (removeItem.isPartOfPack) {
+        const partsOfPack = await this.prisma.inventory.findMany({
+          where: {
+            isPartOfPack: true,
+            packId: removeItem.packId,
+          },
+        });
+        const isSomeOneActivated = partsOfPack.find((item) => {
+          if (!item.isCanBeRefund) {
+            return item;
+          }
+        });
+
+        if (isSomeOneActivated) {
+          throw new HttpException(
+            'Один из предметов в наборе уже активирован. Возврат невозможен',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
 
         await this.prisma.$transaction(async (tx) => {
           const refundMoney = await tx.purchase.findFirst({
@@ -182,6 +199,15 @@ export class ProfileService {
             },
           });
 
+          const currentDate = new Date();
+
+          // Преобразование к формату DD.MM.YY
+          const day = String(currentDate.getDate()).padStart(2, '0');
+          const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+          const year = String(currentDate.getFullYear()).slice(-2);
+
+          const formattedDate = `${day}.${month}.${year}`;
+
           const refundPurchase = await tx.purchase.create({
             data: {
               userId: user.id,
@@ -190,12 +216,14 @@ export class ProfileService {
               productId: removeItem.productId,
               lostBonusBalance: refundMoney.lostBonusBalance,
               lostMainBalance: refundMoney.lostMainBalance,
+              dateOfPurchase: formattedDate,
             },
           });
 
-          await tx.inventory.delete({
+          await tx.inventory.deleteMany({
             where: {
-              id: removeItem.id,
+              userId: user.id,
+              historyOfPurchaseId: removeItem.historyOfPurchaseId,
             },
           });
 
@@ -206,20 +234,33 @@ export class ProfileService {
             data: {
               mainBalance: user.mainBalance + refundMoney.lostMainBalance,
               bonusBalance: user.bonusBalance + refundMoney.lostBonusBalance,
+              lastActivity: new Date(),
             },
           });
+        });
+        return {
+          status: 'Success',
+          data: {},
+          message: 'Возврат успешно произведен',
+        };
+      }
 
-          /* const refundMoney = await tx.purchase.aggregate({
+      await this.prisma.$transaction(async (tx) => {
+        const refundMoney = await tx.purchase.findFirst({
           where: {
-            productId: removeItem.id,
-            refund: false,
+            id: removeItem.historyOfPurchaseId,
             userId: user.id,
           },
-          _sum: {
-            lostBonusBalance: true,
-            lostMainBalance: true,
-          },
         });
+
+        const currentDate = new Date();
+
+        // Преобразование к формату DD.MM.YY
+        const day = String(currentDate.getDate()).padStart(2, '0');
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const year = String(currentDate.getFullYear()).slice(-2);
+
+        const formattedDate = `${day}.${month}.${year}`;
 
         const refundPurchase = await tx.purchase.create({
           data: {
@@ -227,25 +268,29 @@ export class ProfileService {
             amount: removeItem.amount,
             refund: true,
             productId: removeItem.productId,
-            lostBonusBalance: refundMoney._sum.lostMainBalance,
-            lostMainBalance: refundMoney._sum.lostBonusBalance,
+            lostBonusBalance: refundMoney.lostBonusBalance,
+            lostMainBalance: refundMoney.lostMainBalance,
+            dateOfPurchase: formattedDate,
           },
         });
+
         await tx.inventory.delete({
           where: {
             id: removeItem.id,
           },
         });
+
         await tx.user.update({
           where: {
             id: user.id,
           },
           data: {
-            mainBalance: user.mainBalance + refundMoney._sum.lostMainBalance,
-            bonusBalance: user.bonusBalance + refundMoney._sum.lostBonusBalance,
+            mainBalance: user.mainBalance + refundMoney.lostMainBalance,
+            bonusBalance: user.bonusBalance + refundMoney.lostBonusBalance,
+            lastActivity: new Date(),
           },
-        }); */
         });
+      });
       return {
         status: 'Success',
         data: {},
