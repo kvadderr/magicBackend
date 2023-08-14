@@ -151,7 +151,12 @@ export class StatiscticService {
   }
 
   async profitOnServer() {
-    const servers = await this.prisma.server.findMany();
+    const servers = await this.prisma.server.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
 
     const profitServers = await Promise.all(
       servers.map(async (server) => {
@@ -188,7 +193,12 @@ export class StatiscticService {
   }
 
   async profitPerServerOnRandomDate(startDate: string, endDate: string) {
-    const servers = await this.prisma.server.findMany();
+    const servers = await this.prisma.server.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
 
     const correctStartDate = new Date(startDate);
     const correctEndDate = new Date(endDate);
@@ -234,7 +244,12 @@ export class StatiscticService {
   }
 
   async profitPerItem() {
-    const items = await this.prisma.product.findMany();
+    const items = await this.prisma.product.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
 
     const profit = await Promise.all(
       items.map(async (item) => {
@@ -267,7 +282,12 @@ export class StatiscticService {
           id: serverId,
         },
       });
-      const items = await this.prisma.product.findMany();
+      const items = await this.prisma.product.findMany({
+        select: {
+          id: true,
+          name: true,
+        },
+      });
 
       const profit = await Promise.all(
         items.map(async (item) => {
@@ -311,5 +331,66 @@ export class StatiscticService {
       }),
     );
     return profit;
+  }
+
+  async countOfProducts() {
+    const items = await this.prisma.product.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    const counter = await Promise.all(
+      items.map(async (item) => {
+        const purchasesAndCount = await this.prisma.purchase.aggregate({
+          where: {
+            refund: false,
+            productId: item.id,
+          },
+          _sum: {
+            amount: true,
+          },
+        });
+
+        return { item: item.name, amount: purchasesAndCount._sum.amount };
+      }),
+    );
+
+    return counter;
+  }
+
+  async countOfProductsByRandomDate(startDate: string, endDate: string) {
+    const correctStartDate = new Date(startDate);
+    const correctEndDate = new Date(endDate);
+
+    const items = await this.prisma.product.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    const counter = await Promise.all(
+      items.map(async (item) => {
+        const purchasesAndCount = await this.prisma.purchase.aggregate({
+          where: {
+            refund: false,
+            productId: item.id,
+            createdAt: {
+              gte: correctStartDate,
+              lte: correctEndDate,
+            },
+          },
+          _sum: {
+            amount: true,
+          },
+        });
+
+        return { item: item.name, amount: purchasesAndCount._sum.amount };
+      }),
+    );
+
+    return counter;
   }
 }

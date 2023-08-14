@@ -101,4 +101,21 @@ export class StatiscticController {
   ) {
     return this.statService.profitPerServerOnRandomDate(startDate, endDate);
   }
+
+  @Get('/countOfProducts')
+  @UseGuards(RolesGuard)
+  @Roles('ADMINISTRATOR')
+  countOfProducts() {
+    return this.statService.countOfProducts();
+  }
+
+  @Get('/countOfProductsByRandomDate/?')
+  @UseGuards(RolesGuard)
+  @Roles('ADMINISTRATOR')
+  countOfProductsByRandomDate(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return this.statService.countOfProductsByRandomDate(startDate, endDate);
+  }
 }
