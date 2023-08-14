@@ -319,7 +319,7 @@ export class ProfileService {
 
       const user = await this.userSerivce.findById(isUser.id);
 
-      const updateItem = await this.prisma.inventory.findFirst({
+      const updateItem = await this.prisma.inventory.findFirstOrThrow({
         where: {
           id: inventoryItemId,
           userId: user.id,
