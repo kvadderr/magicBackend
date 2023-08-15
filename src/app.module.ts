@@ -15,6 +15,7 @@ import { ApiRustModule } from './api-rust/api-rust.module';
 import { NotificationModule } from './notification/notification.module';
 import { StatiscticModule } from './statisctic/statisctic.module';
 import { ContactsModule } from './contacts/contacts.module';
+import { VisitorMiddleware } from './visitor-middleware/visitor.middleware';
 
 @Module({
   imports: [
@@ -38,6 +39,10 @@ import { ContactsModule } from './contacts/contacts.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(UserAgentMiddleware).forRoutes('auth');
+    consumer
+      .apply(UserAgentMiddleware)
+      .forRoutes('auth')
+      .apply(VisitorMiddleware)
+      .forRoutes('*');
   }
 }

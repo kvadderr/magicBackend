@@ -1,4 +1,11 @@
-import { Controller, Get, Headers, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Headers,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { StatiscticService } from './statisctic.service';
 import { Roles } from 'src/auth/guards/roles-guard.decorator';
 import { RolesGuard } from 'src/auth/guards/auth.guard';
@@ -117,5 +124,19 @@ export class StatiscticController {
     @Query('endDate') endDate: string,
   ) {
     return this.statService.countOfProductsByRandomDate(startDate, endDate);
+  }
+
+  @Get('/getVisitors/:type')
+  @UseGuards(RolesGuard)
+  @Roles('ADMINISTRATOR')
+  getVisitors(@Param('type') type: string) {
+    return this.statService.getVisitors(type);
+  }
+
+  @Get('/getVisitorsPerType/:type')
+  @UseGuards(RolesGuard)
+  @Roles('ADMINISTRATOR')
+  visitorsPerDayMonth(@Param('type') type: string) {
+    return this.statService.visitorsPerDayMonth(type);
   }
 }

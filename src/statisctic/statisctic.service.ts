@@ -393,4 +393,91 @@ export class StatiscticService {
 
     return counter;
   }
+
+  async getVisitors(
+    type: string, //* day\month
+  ) {
+    const currentDate = new Date();
+
+    // Преобразование к формату DD.MM.YY
+    const day = String(currentDate.getDate()).padStart(2, '0');
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const year = String(currentDate.getFullYear()).slice(-2);
+
+    switch (type) {
+      case 'day':
+        const today = `${day}.${month}.${year}`;
+
+        const visitorsToday = await this.prisma.visitors.aggregate({
+          where: {
+            sortDate: today,
+          },
+          _count: {
+            ip: true,
+          },
+        });
+        return visitorsToday;
+      case 'month':
+        const endDate = new Date(currentDate);
+        const startDate = new Date(currentDate);
+        startDate.setDate(currentDate.getDate() - 30);
+        startDate.setHours(0, 0, 0, 0);
+
+        const visitorsMonth = await this.prisma.visitors.aggregate({
+          where: {
+            createdAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+          _count: {
+            ip: true,
+          },
+        });
+        return visitorsMonth;
+      default:
+        throw new HttpException('Enter type of sort', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async visitorsPerDayMonth(type: string) {
+    const currentDate = new Date();
+
+    // Преобразование к формату DD.MM.YY
+    const day = String(currentDate.getDate()).padStart(2, '0');
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const year = String(currentDate.getFullYear()).slice(-2);
+
+    console.log(month);
+
+    switch (type) {
+      case 'day':
+        const groupedVisiotrsPerDay = await this.prisma.visitors.groupBy({
+          by: ['sortDate'],
+          orderBy: {
+            sortDate: 'asc',
+          },
+          _count: {
+            ip: true,
+          },
+        });
+
+        return groupedVisiotrsPerDay;
+      case 'month':
+        const str = new RegExp(/\.\d{2}\./gm);
+        const groupByMonthVisitors = await this.prisma.visitors.groupBy({
+          by: ['sortedMonth'],
+          orderBy: {
+            sortedMonth: 'asc',
+          },
+          _count: {
+            ip: true,
+          },
+        });
+
+        return groupByMonthVisitors;
+      default:
+        throw new HttpException('Enter type of sort', HttpStatus.BAD_REQUEST);
+    }
+  }
 }

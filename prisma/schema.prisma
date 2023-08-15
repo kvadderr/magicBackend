@@ -248,3 +248,11 @@ model Contacts {
   url  String
   icon String
 }
+
+model Visitors {
+  id          Int      @id @default(autoincrement())
+  ip          String
+  sortDate    String
+  sortedMonth String
+  createdAt   DateTime @default(now())
+}
