@@ -73,30 +73,30 @@ export class ApiRustService {
       if (!serverCandidate) {
         throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
       }
+      const autoActivationItems = await this.prisma.inventory.findMany({
+        where: {
+          product: {
+            autoactivation: true,
+          },
+        },
+        select: {
+          id: true,
+          amount: true,
+          user: {
+            select: {
+              steamID: true,
+            },
+          },
+          product: {
+            select: {
+              nameID: true,
+            },
+          },
+        },
+      });
       await this.prisma.$transaction(async (tx) => {
-        const autoActivationItems = await tx.inventory.findMany({
-          where: {
-            product: {
-              autoactivation: true,
-            },
-          },
-          select: {
-            id: true,
-            amount: true,
-            user: {
-              select: {
-                steamID: true,
-              },
-            },
-            product: {
-              select: {
-                nameID: true,
-              },
-            },
-          },
-        });
-        Promise.all([
-          autoActivationItems.forEach(async (el) => {
+        await Promise.all(
+          autoActivationItems.map(async (el) => {
             await tx.inventory.update({
               where: {
                 id: el.id,
@@ -106,19 +106,19 @@ export class ApiRustService {
               },
             });
           }),
-        ]);
-        const resultData = autoActivationItems.map((el) => {
-          return {
-            id: el.id,
-            quantity: el.amount,
-            steamid: el.user.steamID,
-          };
-        });
+        );
+      });
+      const resultData = autoActivationItems.map((el) => {
         return {
-          status: 'Success',
-          data: resultData,
+          id: el.id,
+          quantity: el.amount,
+          steamid: el.user.steamID,
         };
       });
+      return {
+        status: 'Success',
+        data: resultData,
+      };
     } catch (error) {
       console.log(error);
       return {
@@ -193,31 +193,25 @@ export class ApiRustService {
     queueid: number,
   ) {
     try {
-      const serverCandidate = await this.prisma.server.findFirst({
+      const serverCandidate = await this.prisma.server.findFirstOrThrow({
         where: {
           serverID,
           apiKey: token,
         },
       });
 
-      if (!serverCandidate) {
-        throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
-      }
-
-      const user = await this.prisma.user.findFirst({
+      const user = await this.prisma.user.findFirstOrThrow({
         where: {
           steamID: steamid,
         },
       });
 
-      if (!user) {
-        throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
-      }
       await this.prisma.$transaction(async (tx) => {
         const item = await tx.inventory.findFirst({
           where: {
             id: queueid,
             userId: user.id,
+            status: 'INVENTORY',
           },
         });
 
@@ -251,6 +245,8 @@ export class ApiRustService {
           data: {
             status: 'ON_SERVER',
             isCanBeRefund: false,
+            serverId: serverCandidate.id,
+            serverName: serverCandidate.name,
           },
         });
       });
@@ -313,35 +309,23 @@ export class ApiRustService {
     quanity: number,
   ) {
     try {
-      const isValidToken = await this.prisma.baseSettings.findFirst({
+      const isValidToken = await this.prisma.baseSettings.findFirstOrThrow({
         where: {
           apiKey: token,
         },
       });
 
-      if (!isValidToken) {
-        throw new HttpException('Api token invalid', HttpStatus.BAD_REQUEST);
-      }
-
-      const user = await this.prisma.user.findFirst({
+      const user = await this.prisma.user.findFirstOrThrow({
         where: {
           steamID: steamid,
         },
       });
 
-      if (!user) {
-        throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
-      }
-
-      const itemCandidate = await this.prisma.product.findFirst({
+      const itemCandidate = await this.prisma.product.findFirstOrThrow({
         where: {
           nameID: productId,
         },
       });
-
-      if (!itemCandidate) {
-        throw new HttpException('Item not found', HttpStatus.BAD_REQUEST);
-      }
 
       await this.prisma.$transaction(async (tx) => {
         const newPurchase = await tx.purchase.create({
@@ -375,6 +359,45 @@ export class ApiRustService {
     }
   }
 
+  async userAddBonus(
+    serverID: number,
+    token: string,
+    steamId: string,
+    sum: number,
+  ) {
+    try {
+      const serverCandidate = await this.prisma.server.findFirstOrThrow({
+        where: {
+          serverID,
+          apiKey: token,
+        },
+      });
+
+      const user = await this.prisma.user.findFirstOrThrow({
+        where: {
+          steamID: steamId,
+        },
+      });
+
+      const newData = await this.prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          bonusBalance: user.bonusBalance + sum,
+        },
+      });
+
+      return;
+    } catch (error) {
+      console.log(error);
+      return {
+        status: 'Error',
+        message: error.message,
+      };
+    }
+  }
+
   async promoCreate(
     token: string,
     promoName: string,
@@ -387,50 +410,5 @@ export class ApiRustService {
     productId?: number,
   ) {
     //TODO: спросить у Оли - делать ли этот метод - NO
-  }
-
-  async userAddBonus(
-    serverID: number,
-    token: string,
-    steamId: string,
-    sum: number,
-  ) {
-    try {
-      const serverCandidate = await this.prisma.server.findFirst({
-        where: {
-          serverID,
-          apiKey: token,
-        },
-      });
-
-      if (!serverCandidate) {
-        throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
-      }
-
-      const user = await this.prisma.user.findFirst({
-        where: {
-          steamID: steamId,
-        },
-      });
-
-      if (!user) {
-        throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
-      }
-
-      await this.prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          bonusBalance: user.bonusBalance + sum,
-        },
-      });
-    } catch (error) {
-      console.log(error);
-      return {
-        status: 'Error',
-        message: error.message,
-      };
-    }
   }
 }
