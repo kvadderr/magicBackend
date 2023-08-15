@@ -6,8 +6,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class VisitorMiddleware implements NestMiddleware {
   constructor(private readonly prisma: PrismaService) {}
   async use(req: Request, res: Response, next: NextFunction) {
-    console.log(`Request... ${req.ip}`);
-
     const clientIp =
       req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
