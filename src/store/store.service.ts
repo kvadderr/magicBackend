@@ -26,7 +26,7 @@ export class StoreService {
           if (el.saleDiscount != 1) {
             return {
               ...el,
-              price: el.price * el.saleDiscount,
+              price: el.price * ((100 - el.saleDiscount) / 100),
               basePrice: el.price,
               discount: el.saleDiscount,
             };
@@ -48,7 +48,7 @@ export class StoreService {
           if (el.discount != 1) {
             return {
               ...el,
-              price: el.price * el.discount,
+              price: el.price * ((100 - el.discount) / 100),
               basePrice: el.price,
               discount: el.discount,
             };
