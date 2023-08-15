@@ -23,12 +23,21 @@ export class StoreService {
       const siteSettings = await this.prisma.baseSettings.findFirst();
       if (siteSettings.saleMode) {
         const result = products.map((el) => {
-          return {
-            ...el,
-            price: el.price * el.saleDiscount,
-            basePrice: el.price,
-            discount: (100 - el.saleDiscount) / 100,
-          };
+          if (el.saleDiscount != 1) {
+            return {
+              ...el,
+              price: el.price * el.saleDiscount,
+              basePrice: el.price,
+              discount: el.saleDiscount,
+            };
+          } else {
+            return {
+              ...el,
+              price: el.price * el.saleDiscount,
+              basePrice: el.price,
+              discount: null,
+            };
+          }
         });
         result.sort((a, b) => {
           return a.number - b.number;
@@ -36,12 +45,21 @@ export class StoreService {
         return result;
       } else {
         const result = products.map((el) => {
-          return {
-            ...el,
-            price: el.price * el.discount,
-            basePrice: el.price,
-            discount: (100 - el.discount) / 100,
-          };
+          if (el.discount != 1) {
+            return {
+              ...el,
+              price: el.price * el.discount,
+              basePrice: el.price,
+              discount: el.discount,
+            };
+          } else {
+            return {
+              ...el,
+              price: el.price * el.discount,
+              basePrice: el.price,
+              discount: null,
+            };
+          }
         });
         result.sort((a, b) => {
           return a.number - b.number;
@@ -112,7 +130,7 @@ export class StoreService {
         if (saleSetting.saleMode) {
           if (
             user.mainBalance + user.bonusBalance <
-            product.price * product.saleDiscount * amount
+            product.price * ((100 - product.saleDiscount) / 100) * amount
           ) {
             throw new HttpException(
               'Недостаточно средств для покупки',
@@ -120,7 +138,7 @@ export class StoreService {
             );
           } else {
             let productPrice = Math.round(
-              product.price * product.saleDiscount * amount,
+              product.price * ((100 - product.saleDiscount) / 100) * amount,
             );
             //productPrice -= user.bonusBalance;
             if (productPrice - user.bonusBalance < 0) {
@@ -273,7 +291,7 @@ export class StoreService {
         } else {
           if (
             user.mainBalance + user.bonusBalance <
-            product.price * product.discount * amount
+            product.price * ((100 - product.discount) / 100) * amount
           ) {
             throw new HttpException(
               'Недостаточно средств для покупки',
@@ -281,7 +299,7 @@ export class StoreService {
             );
           } else {
             let productPrice = Math.round(
-              product.price * product.discount * amount,
+              product.price * ((100 - product.discount) / 100) * amount,
             );
             //productPrice -= user.bonusBalance;
             if (productPrice - user.bonusBalance < 0) {
