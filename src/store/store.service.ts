@@ -560,24 +560,22 @@ export class StoreService {
         );
       }
 
-      const product = await this.prisma.product.findFirst({
+      const product = await this.prisma.product.findFirstOrThrow({
         where: {
           id: productId,
         },
       });
 
-      if (!product) {
-        throw new HttpException('Предмет не найден', HttpStatus.BAD_REQUEST);
-      }
-
       const settings = await this.getBaseSettings();
 
       if (settings.saleMode) {
-        const currentPrice = product.price * amount * product.saleDiscount;
+        const currentPrice =
+          product.price * amount * ((100 - product.saleDiscount) / 100);
         return currentPrice;
       }
 
-      const currentPrice = product.price * amount * product.discount;
+      const currentPrice =
+        product.price * amount * ((100 - product.discount) / 100);
       return currentPrice;
     } catch (error) {
       console.log(error);
