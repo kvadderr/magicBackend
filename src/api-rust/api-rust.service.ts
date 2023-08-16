@@ -7,15 +7,13 @@ export class ApiRustService {
 
   async getProducts(serverID: number, token: string) {
     try {
-      const serverCandidate = await this.prisma.server.findFirst({
+      const serverCandidate = await this.prisma.server.findFirstOrThrow({
         where: {
           serverID,
           apiKey: token,
         },
       });
-      if (!serverCandidate) {
-        throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
-      }
+
       const productList = await this.prisma.product.findMany({
         where: {
           hidden: false,
@@ -64,17 +62,16 @@ export class ApiRustService {
 
   async getQueueAuto(serverID: number, token: string) {
     try {
-      const serverCandidate = await this.prisma.server.findFirst({
+      const serverCandidate = await this.prisma.server.findFirstOrThrow({
         where: {
           serverID,
           apiKey: token,
         },
       });
-      if (!serverCandidate) {
-        throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
-      }
+
       const autoActivationItems = await this.prisma.inventory.findMany({
         where: {
+          serverId: serverCandidate.id,
           product: {
             autoactivation: true,
           },
@@ -130,30 +127,24 @@ export class ApiRustService {
 
   async queueGet(serverID: number, token: string, steamid: string) {
     try {
-      const serverCandidate = await this.prisma.server.findFirst({
+      const serverCandidate = await this.prisma.server.findFirstOrThrow({
         where: {
           serverID,
           apiKey: token,
         },
       });
 
-      if (!serverCandidate) {
-        throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
-      }
-
-      const user = await this.prisma.user.findFirst({
+      const user = await this.prisma.user.findFirstOrThrow({
         where: {
           steamID: steamid,
         },
       });
 
-      if (!user) {
-        throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
-      }
-
       const productList = await this.prisma.inventory.findMany({
         where: {
           status: 'INVENTORY',
+          serverTypeId: serverCandidate.serverTypeId,
+          userId: user.id,
         },
         select: {
           id: true,
@@ -207,17 +198,13 @@ export class ApiRustService {
       });
 
       await this.prisma.$transaction(async (tx) => {
-        const item = await tx.inventory.findFirst({
+        const item = await tx.inventory.findFirstOrThrow({
           where: {
             id: queueid,
             userId: user.id,
             status: 'INVENTORY',
           },
         });
-
-        if (!item) {
-          throw new HttpException('Item not found', HttpStatus.BAD_REQUEST);
-        }
 
         if (item.isPartOfPack) {
           const partsOfPacks = await tx.inventory.findMany({
@@ -262,25 +249,17 @@ export class ApiRustService {
 
   async userGet(token: string, steamid: string) {
     try {
-      const isValidToken = await this.prisma.baseSettings.findFirst({
+      const isValidToken = await this.prisma.baseSettings.findFirstOrThrow({
         where: {
           apiKey: token,
         },
       });
 
-      if (!isValidToken) {
-        throw new HttpException('Api token invalid', HttpStatus.BAD_REQUEST);
-      }
-
-      const user = await this.prisma.user.findFirst({
+      const user = await this.prisma.user.findFirstOrThrow({
         where: {
           steamID: steamid,
         },
       });
-
-      if (!user) {
-        throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
-      }
 
       return {
         status: 'Success',
