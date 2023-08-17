@@ -29,32 +29,69 @@ export class ApiRustService {
         },
       });
       const resultData = productList.map((el) => {
-        if (el.type != 'GAME_ITEM') {
-          return {
-            id: el.id,
-            type: el.type,
-            name: el.name,
-            image: el.image,
-            data: el.productContent,
-          };
-        } else {
-          return {
-            id: el.id,
-            type: el.type,
-            name: el.name,
-            image: el.image,
-            data: el.nameID,
-          };
+        const type = getNumberByType(el.type);
+        switch (el.type) {
+          case 'GAME_ITEM':
+            return {
+              id: el.id,
+              type,
+              NameID: el.nameID,
+              name: el.name,
+              image: el.image,
+            };
+          case 'SERVICE':
+            return {
+              id: el.id,
+              type,
+              NameID: el.nameID,
+              name: el.name,
+              image: el.image,
+            };
+          case 'SETS_OF_PRODUCTS':
+            return {
+              id: el.id,
+              type,
+              NameID: el.nameID,
+              name: el.name,
+              image: el.image,
+              data: el.productContent,
+            };
+          case 'CURRENCY':
+            return {
+              id: el.id,
+              type,
+              NameID: el.nameID,
+              name: el.name,
+              image: el.image,
+            };
+          case 'HTTP_REQUEST':
+            return {
+              id: el.id,
+              type,
+              NameID: el.nameID,
+              name: el.name,
+              image: el.image,
+              data: el.productContent,
+            };
+          default:
+            return {
+              id: el.id,
+              type,
+              NameID: el.nameID,
+              name: el.name,
+              image: el.image,
+              data: el.nameID,
+            };
         }
       });
       return {
-        status: 'Success',
+        status: 'success',
         data: resultData,
       };
     } catch (error) {
       console.log(error);
       return {
-        status: 'Error',
+        status: 'error',
         message: error.message,
       };
     }
@@ -72,6 +109,7 @@ export class ApiRustService {
       const autoActivationItems = await this.prisma.inventory.findMany({
         where: {
           serverId: serverCandidate.id,
+          status: 'INVENTORY',
           product: {
             autoactivation: true,
           },
@@ -113,13 +151,13 @@ export class ApiRustService {
         };
       });
       return {
-        status: 'Success',
+        status: 'success',
         data: resultData,
       };
     } catch (error) {
       console.log(error);
       return {
-        status: 'Error',
+        status: 'error',
         message: error.message,
       };
     }
@@ -161,17 +199,18 @@ export class ApiRustService {
         return {
           id: el.id,
           quantity: el.amount,
+          nameID: el.product.nameID,
         };
       });
 
       return {
-        status: 'Success',
+        status: 'success',
         data: resultData,
       };
     } catch (error) {
       console.log(error);
       return {
-        status: 'Error',
+        status: 'error',
         message: error.message,
       };
     }
@@ -237,11 +276,13 @@ export class ApiRustService {
           },
         });
       });
-      return;
+      return {
+        status: 'success',
+      };
     } catch (error) {
       console.log(error);
       return {
-        status: 'Error',
+        status: 'error',
         message: error.message,
       };
     }
@@ -262,7 +303,7 @@ export class ApiRustService {
       });
 
       return {
-        status: 'Success',
+        status: 'success',
         data: {
           name: user.steamName,
           avatar: user.steamAvatar,
@@ -275,7 +316,7 @@ export class ApiRustService {
     } catch (error) {
       console.log(error);
       return {
-        status: 'Error',
+        status: 'error',
         message: error.message,
       };
     }
@@ -328,11 +369,13 @@ export class ApiRustService {
         });
       });
 
-      return;
+      return {
+        status: 'success',
+      };
     } catch (error) {
       console.log(error);
       return {
-        status: 'Error',
+        status: 'error',
         message: error.message,
       };
     }
@@ -367,11 +410,13 @@ export class ApiRustService {
         },
       });
 
-      return;
+      return {
+        status: 'success',
+      };
     } catch (error) {
       console.log(error);
       return {
-        status: 'Error',
+        status: 'error',
         message: error.message,
       };
     }
@@ -389,5 +434,21 @@ export class ApiRustService {
     productId?: number,
   ) {
     //TODO: спросить у Оли - делать ли этот метод - NO
+  }
+}
+function getNumberByType(type: string) {
+  switch (type) {
+    case 'GAME_ITEM':
+      return 1;
+    case 'SERVICE':
+      return 2;
+    case 'SETS_OF_PRODUCTS':
+      return 3;
+    case 'HTTP_REQUEST':
+      return 4;
+    case 'CURRENCY':
+      return 5;
+    default:
+      break;
   }
 }

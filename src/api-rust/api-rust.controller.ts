@@ -24,7 +24,7 @@ export class ApiRustController {
     @Query('token') token: string,
   ) {
     const data = await this.apiService.getProducts(Number(serverID), token);
-    if (data.status == 'Success') {
+    if (data.status == 'success') {
       res.status(200).json(data);
     } else {
       res.status(400).json(data);
@@ -42,6 +42,7 @@ export class ApiRustController {
     type: ResponseApiDto,
   })
   async productGive(
+    @Res() res: Response,
     @Query('product') productId: string,
     @Query('token') token: string,
     @Query('steamid') steamId: string,
@@ -53,7 +54,11 @@ export class ApiRustController {
       productId,
       Number(quanity),
     );
-    return data;
+    if (data.status == 'success') {
+      res.status(200).json(data);
+    } else {
+      res.status(400).json(data);
+    }
   }
 
   @Get('/queue.auto?')
@@ -72,7 +77,7 @@ export class ApiRustController {
     @Query('token') token: string,
   ) {
     const data = await this.apiService.getQueueAuto(Number(serverID), token);
-    if (data.status == 'Success') {
+    if (data.status == 'success') {
       res.status(200).json(data);
     } else {
       res.status(400).json(data);
@@ -99,7 +104,7 @@ export class ApiRustController {
       token,
       steamId,
     );
-    if (data.status == 'Success') {
+    if (data.status == 'success') {
       res.status(200).json(data);
     } else {
       res.status(400).json(data);
@@ -114,6 +119,7 @@ export class ApiRustController {
     type: ResponseApiDto,
   })
   async queueGive(
+    @Res() res: Response,
     @Query('server') serverID: string,
     @Query('token') token: string,
     @Query('steamid') steamId: string,
@@ -125,7 +131,11 @@ export class ApiRustController {
       steamId,
       Number(queueId),
     );
-    return data;
+    if (data.status == 'success') {
+      res.status(200).json(data);
+    } else {
+      res.status(400).json(data);
+    }
   }
 
   @Get('/users.get?')
@@ -141,7 +151,7 @@ export class ApiRustController {
     @Query('steamid') steamId: string,
   ) {
     const data = await this.apiService.userGet(token, steamId);
-    if (data.status == 'Success') {
+    if (data.status == 'success') {
       res.status(200).json(data);
     } else {
       res.status(400).json(data);
@@ -155,17 +165,23 @@ export class ApiRustController {
   @ApiOkResponse({
     status: 200,
   })
-  userAddBonus(
+  async userAddBonus(
+    @Res() res: Response,
     @Query('server') server: string,
     @Query('token') token: string,
     @Query('steamid') steamId: string,
     @Query('sum') sum: number,
   ) {
-    return this.apiService.userAddBonus(
+    const data = await this.apiService.userAddBonus(
       Number(server),
       token,
       steamId,
       Number(sum),
     );
+    if (data.status == 'success') {
+      res.status(200).json(data);
+    } else {
+      res.status(400).json(data);
+    }
   }
 }
