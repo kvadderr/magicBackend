@@ -84,15 +84,11 @@ export class ServersService {
     page: number,
     token?: string,
   ) {
-    const serverInfo = await this.prisma.server.findFirst({
+    const serverInfo = await this.prisma.server.findFirstOrThrow({
       where: {
         id,
       },
     });
-
-    if (!serverInfo) {
-      throw new HttpException('Сервер не найден', HttpStatus.BAD_REQUEST);
-    }
 
     const leaderboard: PlayerObject = (
       await firstValueFrom(
@@ -171,15 +167,11 @@ export class ServersService {
   }
 
   async getTopOfLeaderboard(id: number) {
-    const serverInfo = await this.prisma.server.findFirst({
+    const serverInfo = await this.prisma.server.findFirstOrThrow({
       where: {
         id,
       },
     });
-
-    if (!serverInfo) {
-      throw new HttpException('Сервер не найден', HttpStatus.BAD_REQUEST);
-    }
 
     const leaderboard: PlayerObject = (
       await firstValueFrom(

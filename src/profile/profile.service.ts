@@ -56,14 +56,7 @@ export class ProfileService {
       if (!sort) {
         throw new HttpException('Enter type of sort', HttpStatus.BAD_REQUEST);
       }
-      const isUser = await this.tokenService.validateAccessToken(token);
-
-      if (!isUser) {
-        throw new HttpException(
-          'Пользователь не найден',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
+      const isUser = await this.verifyUser(token);
 
       const user = await this.userSerivce.findById(isUser.id);
 
@@ -106,10 +99,15 @@ export class ProfileService {
 
       const result: any[] = [...transactions, ...purchases, ...transfers];
 
-      if (sort === 'desc') {
-        result.sort((a, b) => b.createdAt - a.createdAt);
-      } else if (sort === 'asc') {
-        result.sort((a, b) => a.createdAt - b.createdAt);
+      switch (sort) {
+        case 'desc':
+          result.sort((a, b) => b.createdAt - a.createdAt);
+          break;
+        case 'asc':
+          result.sort((a, b) => a.createdAt - b.createdAt);
+          break;
+        default:
+          break;
       }
 
       return {
@@ -124,14 +122,7 @@ export class ProfileService {
 
   async getBalance(token: string) {
     try {
-      const isUser = await this.tokenService.validateAccessToken(token);
-
-      if (!isUser) {
-        throw new HttpException(
-          'Пользователь не найден',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
+      const isUser = await this.verifyUser(token);
 
       const user = await this.userSerivce.findById(isUser.id);
 
@@ -144,14 +135,7 @@ export class ProfileService {
 
   async undoPurchase(token: string, inventoryId: number) {
     try {
-      const isUser = await this.tokenService.validateAccessToken(token);
-
-      if (!isUser) {
-        throw new HttpException(
-          'Пользователь не найден',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
+      const isUser = await this.verifyUser(token);
 
       const user = await this.userSerivce.findById(isUser.id);
 
@@ -192,7 +176,7 @@ export class ProfileService {
         }
 
         await this.prisma.$transaction(async (tx) => {
-          const refundMoney = await tx.purchase.findFirst({
+          const refundMoney = await tx.purchase.findFirstOrThrow({
             where: {
               id: removeItem.historyOfPurchaseId,
               userId: user.id,
@@ -308,14 +292,7 @@ export class ProfileService {
 
   async updateServer(inventoryItemId: number, serverId: number, token: string) {
     try {
-      const isUser = await this.tokenService.validateAccessToken(token);
-
-      if (!isUser) {
-        throw new HttpException(
-          'Пользователь не найден',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
+      const isUser = await this.verifyUser(token);
 
       const user = await this.userSerivce.findById(isUser.id);
 
@@ -336,15 +313,11 @@ export class ProfileService {
         );
       }
 
-      const server = await this.prisma.server.findFirst({
+      const server = await this.prisma.server.findFirstOrThrow({
         where: {
           id: serverId,
         },
       });
-
-      if (!server) {
-        throw new HttpException('Сервер не найден', HttpStatus.BAD_REQUEST);
-      }
 
       await this.prisma.inventory.update({
         where: {
@@ -368,5 +341,14 @@ export class ProfileService {
         message: error.message,
       };
     }
+  }
+
+  private async verifyUser(token: string) {
+    const isUser = await this.tokenService.validateAccessToken(token);
+
+    if (!isUser) {
+      throw new HttpException('Пользователь не найден', HttpStatus.BAD_REQUEST);
+    }
+    return isUser;
   }
 }
