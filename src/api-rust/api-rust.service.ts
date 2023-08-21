@@ -189,6 +189,7 @@ export class ApiRustService {
           amount: true,
           product: {
             select: {
+              id: true,
               nameID: true,
             },
           },
@@ -199,7 +200,7 @@ export class ApiRustService {
         return {
           id: el.id,
           quantity: el.amount,
-          nameID: el.product.nameID,
+          productID: el.product.id,
         };
       });
 
