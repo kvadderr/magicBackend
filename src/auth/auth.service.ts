@@ -175,6 +175,14 @@ export class AuthService {
       user: new ResponseUserDto(candidate),
     };
   }
+
+  async validateAdmin(token: string) {
+    const data = this.tokenService.validateAdmin(token);
+    if (!data) {
+      throw new HttpException('JWT expired', HttpStatus.BAD_REQUEST);
+    }
+    return data.role == 'ADMINISTRATOR' ? true : false;
+  }
 }
 
 export interface RegistrationStatus {

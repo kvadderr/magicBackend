@@ -188,4 +188,18 @@ export class TokenService {
   parseJwt(token: string) {
     return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
   }
+
+  validateAdmin(token: string) {
+    try {
+      const userData = this.jwtService.verify(token, {
+        secret: SECRET_KEY,
+      }) as JwtPayload;
+
+      return userData;
+    } catch (e) {
+      console.log(e);
+
+      return null;
+    }
+  }
 }

@@ -9,6 +9,7 @@ import {
   Param,
   HttpException,
   HttpStatus,
+  Headers,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
@@ -97,5 +98,11 @@ export class AuthController {
         httpOnly: httpOnlyRequest,
       })
       .json(data);
+  }
+
+  @Get('/validateAdmin')
+  validateAdmin(@Headers('Authorization') authorization) {
+    const token = authorization.split(' ')[1];
+    return this.authService.validateAdmin(token);
   }
 }
