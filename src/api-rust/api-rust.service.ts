@@ -124,6 +124,7 @@ export class ApiRustService {
           },
           product: {
             select: {
+              id: true,
               nameID: true,
             },
           },
@@ -148,6 +149,7 @@ export class ApiRustService {
           id: el.id,
           quantity: el.amount,
           steamid: el.user.steamID,
+          productID: el.product.id,
         };
       });
       return {
