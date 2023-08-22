@@ -20,9 +20,10 @@ export class FileController {
         await this.prisma.product.create({
           data: {
             image: arrayOfItems[i].image,
-            name: arrayOfItems[i].market_name,
+            name_ru: arrayOfItems[i].market_name,
             price: Math.round(arrayOfItems[i].priceByCurrency.RUB.safe),
             nameID: arrayOfItems[i].nameID,
+            name_en: '',
           },
         });
       }

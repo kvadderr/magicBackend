@@ -44,6 +44,7 @@ export class ProfileController {
   @UseGuards(JwtAuthGuard)
   getInventory(
     @Headers('Authorization') authorization,
+    @Headers('Language') lang,
     @Query('page') pageNumber: number,
     @Query('count') selectNumber: number,
   ) {
@@ -53,6 +54,7 @@ export class ProfileController {
         token,
         Number(pageNumber),
         Number(selectNumber),
+        lang,
       );
     } catch (error) {
       throw error;
@@ -66,6 +68,7 @@ export class ProfileController {
   @ApiOperation({ summary: 'Получение информации по транзакциям' })
   getDetails(
     @Headers('Authorization') authorization,
+    @Headers('Language') lang,
     @Query('page') pageNumber: number,
     @Query('count') selectNumber: number,
     @Query('sort') sort: string,
@@ -77,6 +80,7 @@ export class ProfileController {
         Number(pageNumber),
         Number(selectNumber),
         sort,
+        lang,
       );
     } catch (error) {
       throw error;

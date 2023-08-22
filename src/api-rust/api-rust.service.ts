@@ -22,7 +22,7 @@ export class ApiRustService {
         select: {
           id: true,
           type: true,
-          name: true,
+          name_ru: true,
           image: true,
           productContent: true,
           nameID: true,
@@ -36,7 +36,7 @@ export class ApiRustService {
               id: el.id,
               type,
               NameID: el.nameID,
-              name: el.name,
+              name: el.name_ru,
               image: el.image,
             };
           case 'SERVICE':
@@ -44,7 +44,7 @@ export class ApiRustService {
               id: el.id,
               type,
               NameID: el.nameID,
-              name: el.name,
+              name: el.name_ru,
               image: el.image,
             };
           case 'SETS_OF_PRODUCTS':
@@ -52,7 +52,7 @@ export class ApiRustService {
               id: el.id,
               type,
               NameID: el.nameID,
-              name: el.name,
+              name: el.name_ru,
               image: el.image,
               data: el.productContent,
             };
@@ -61,7 +61,7 @@ export class ApiRustService {
               id: el.id,
               type,
               NameID: el.nameID,
-              name: el.name,
+              name: el.name_ru,
               image: el.image,
             };
           case 'HTTP_REQUEST':
@@ -69,7 +69,7 @@ export class ApiRustService {
               id: el.id,
               type,
               NameID: el.nameID,
-              name: el.name,
+              name: el.name_ru,
               image: el.image,
               data: el.productContent,
             };
@@ -78,7 +78,7 @@ export class ApiRustService {
               id: el.id,
               type,
               NameID: el.nameID,
-              name: el.name,
+              name: el.name_ru,
               image: el.image,
               data: el.nameID,
             };

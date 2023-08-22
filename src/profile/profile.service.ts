@@ -12,7 +12,12 @@ export class ProfileService {
     private readonly userSerivce: UsersService,
   ) {}
 
-  async getInventory(token: string, page: number, count: number) {
+  async getInventory(
+    token: string,
+    page: number,
+    count: number,
+    lang?: string,
+  ) {
     try {
       const isUser = await this.tokenService.validateAccessToken(token);
 
@@ -25,7 +30,7 @@ export class ProfileService {
 
       const user = await this.userSerivce.findById(isUser.id);
 
-      const result = await this.prisma.inventory.findMany({
+      let result = await this.prisma.inventory.findMany({
         where: {
           userId: user.id,
           status: 'INVENTORY',
@@ -35,6 +40,23 @@ export class ProfileService {
           serverType: true,
         },
       });
+      if (lang == 'ru') {
+        result = result.map((el) => {
+          return {
+            ...el,
+            description: el.product.description_ru,
+            name: el.product.name_ru,
+          };
+        });
+      } else if (lang == 'en') {
+        result = result.map((el) => {
+          return {
+            ...el,
+            description: el.product.description_en,
+            name: el.product.name_en,
+          };
+        });
+      }
       result.sort((a, b) => b.createdAt.valueOf() - a.createdAt.valueOf());
       return {
         result: result.slice((page - 1) * count, page * count),
@@ -51,6 +73,7 @@ export class ProfileService {
     page: number,
     count: number,
     sort: string,
+    lang: string,
   ) {
     try {
       if (!sort) {
@@ -80,6 +103,24 @@ export class ProfileService {
           createdAt: 'desc',
         },
       });
+
+      if (lang == 'ru') {
+        purchases = purchases.map((el) => {
+          return {
+            ...el,
+            description: el.product.description_ru,
+            name: el.product.name_ru,
+          };
+        });
+      } else if (lang == 'en') {
+        purchases = purchases.map((el) => {
+          return {
+            ...el,
+            description: el.product.description_en,
+            name: el.product.name_en,
+          };
+        });
+      }
 
       let transfers = await this.prisma.transfers.findMany({
         where: {
@@ -331,7 +372,7 @@ export class ProfileService {
 
       return {
         status: 'Success',
-        message: `Предмет ${updateItem.product.name} будет активирован на ${server.name}`,
+        message: `Предмет ${updateItem.product.name_ru} будет активирован на ${server.name}`,
       };
     } catch (error) {
       console.log(error);

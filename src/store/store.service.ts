@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { Server } from '@prisma/client';
+import { Server, Product } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TokenService } from 'src/token/token.service';
 import { UsersService } from 'src/users/users.service';
@@ -12,28 +12,39 @@ export class StoreService {
     private readonly tokenService: TokenService,
   ) {}
 
-  async getStoreByServerType(serverTypeId: number) {
+  async getStoreByServerType(serverTypeId: number, lang: string) {
     try {
-      const products = await this.prisma.product.findMany({
+      let products = await this.prisma.product.findMany({
         where: {
           serverTypeId,
           hidden: false,
         },
       });
+      if (lang == 'ru') {
+        products = products.map((el) => {
+          return { ...el, description: el.description_ru, name: el.name_ru };
+        });
+      } else if (lang == 'en') {
+        products = products.map((el) => {
+          return { ...el, description: el.description_en, name: el.name_en };
+        });
+      }
       const siteSettings = await this.prisma.baseSettings.findFirst();
       if (siteSettings.saleMode) {
         const result = products.map((el) => {
           if (el.saleDiscount != 1) {
             return {
               ...el,
-              price: el.price * ((100 - el.saleDiscount) / 100),
+              price: Math.round(
+                el.price * el.amount * ((100 - el.saleDiscount) / 100),
+              ),
               basePrice: el.price,
               discount: el.saleDiscount,
             };
           } else {
             return {
               ...el,
-              price: el.price * el.saleDiscount,
+              price: Math.round(el.price * el.saleDiscount * el.amount),
               basePrice: el.price,
               discount: null,
             };
@@ -48,14 +59,16 @@ export class StoreService {
           if (el.discount != 1) {
             return {
               ...el,
-              price: el.price * ((100 - el.discount) / 100),
+              price: Math.round(
+                el.price * el.amount * ((100 - el.discount) / 100),
+              ),
               basePrice: el.price,
               discount: el.discount,
             };
           } else {
             return {
               ...el,
-              price: el.price * el.discount,
+              price: Math.round(el.price * el.amount * el.discount),
               basePrice: el.price,
               discount: null,
             };
@@ -76,38 +89,65 @@ export class StoreService {
     productId: number,
     amount: number,
     serverId: number,
+    lang: string,
   ) {
     try {
       const isUser = await this.tokenService.validateAccessToken(token);
-
-      if (amount < 1) {
-        throw new HttpException(
-          'Количество товара не может быть меньше 1',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
 
       const product = await this.prisma.product.findUnique({
         where: {
           id: productId,
         },
       });
-      if (product.hidden) {
-        throw new HttpException(
-          'Этот товар недоступен для покупки',
-          HttpStatus.FORBIDDEN,
-        );
-      }
+
       const serverType = await this.prisma.serverType.findUnique({
         where: {
           id: product.serverTypeId,
         },
       });
-      if (serverType.hidden) {
-        throw new HttpException(
-          'Покупка недоступна для данного типа сервера',
-          HttpStatus.FORBIDDEN,
-        );
+
+      if (lang == 'ru') {
+        if (amount < 1) {
+          throw new HttpException(
+            'Количество товара не может быть меньше 1',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        if (product.hidden) {
+          throw new HttpException(
+            'Этот товар недоступен для покупки',
+            HttpStatus.FORBIDDEN,
+          );
+        }
+
+        if (serverType.hidden) {
+          throw new HttpException(
+            'Покупка недоступна для данного типа сервера',
+            HttpStatus.FORBIDDEN,
+          );
+        }
+      } else if (lang == 'en') {
+        if (amount < 1) {
+          throw new HttpException(
+            'The quantity of the product cannot be less than 1',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        if (product.hidden) {
+          throw new HttpException(
+            'This item is not available for purchase',
+            HttpStatus.FORBIDDEN,
+          );
+        }
+
+        if (serverType.hidden) {
+          throw new HttpException(
+            'This item is not available for purchase',
+            HttpStatus.FORBIDDEN,
+          );
+        }
       }
 
       let server: Server;
@@ -129,10 +169,17 @@ export class StoreService {
               user.mainBalance + user.bonusBalance <
               product.price * ((100 - product.saleDiscount) / 100) * amount
             ) {
-              throw new HttpException(
-                'Недостаточно средств для покупки',
-                HttpStatus.FORBIDDEN,
-              );
+              if (lang == 'ru') {
+                throw new HttpException(
+                  'Недостаточно средств для покупки',
+                  HttpStatus.FORBIDDEN,
+                );
+              } else if (lang == 'en') {
+                throw new HttpException(
+                  'Not enough funds to buy',
+                  HttpStatus.FORBIDDEN,
+                );
+              }
             } else {
               let productPrice = Math.round(
                 product.price * ((100 - product.saleDiscount) / 100) * amount,
@@ -299,10 +346,17 @@ export class StoreService {
               user.mainBalance + user.bonusBalance <
               product.price * ((100 - product.discount) / 100) * amount
             ) {
-              throw new HttpException(
-                'Недостаточно средств для покупки',
-                HttpStatus.FORBIDDEN,
-              );
+              if (lang == 'ru') {
+                throw new HttpException(
+                  'Недостаточно средств для покупки',
+                  HttpStatus.FORBIDDEN,
+                );
+              } else if (lang == 'en') {
+                throw new HttpException(
+                  'Not enough funds to buy',
+                  HttpStatus.FORBIDDEN,
+                );
+              }
             } else {
               let productPrice = Math.round(
                 product.price * ((100 - product.discount) / 100) * amount,

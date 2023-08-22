@@ -16,6 +16,7 @@ import { NotificationModule } from './notification/notification.module';
 import { StatiscticModule } from './statisctic/statisctic.module';
 import { ContactsModule } from './contacts/contacts.module';
 import { VisitorMiddleware } from './visitor-middleware/visitor.middleware';
+import { LanguageMiddleware } from './store/middlewares/language.middleware';
 
 @Module({
   imports: [
@@ -43,6 +44,8 @@ export class AppModule implements NestModule {
       .apply(UserAgentMiddleware)
       .forRoutes('auth')
       .apply(VisitorMiddleware)
+      .forRoutes('*')
+      .apply(LanguageMiddleware)
       .forRoutes('*');
   }
 }

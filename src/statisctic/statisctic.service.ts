@@ -1,8 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { TokenService } from 'src/token/token.service';
-import { UsersService } from 'src/users/users.service';
-import { PrismaClient, Prisma } from '@prisma/client';
 
 @Injectable()
 export class StatiscticService {
@@ -33,7 +30,10 @@ export class StatiscticService {
     const endOfDay = new Date(currentDate);
     endOfDay.setHours(23, 59, 59, 999); // Устанавливаем время на конец дня
 
-    return { profit: this.getProfit(startOfDay, endOfDay), date: currentDate };
+    return {
+      profit: await this.getProfit(startOfDay, endOfDay),
+      date: currentDate,
+    };
   }
 
   async profitLast30Days() {
@@ -42,7 +42,6 @@ export class StatiscticService {
     const startDate = new Date(currentDate);
     startDate.setDate(currentDate.getDate() - 30);
     startDate.setHours(0, 0, 0, 0);
-    console.log(startDate, endDate);
 
     return { profit: this.getProfit(startDate, endDate), startDate, endDate };
   }
@@ -247,7 +246,7 @@ export class StatiscticService {
     const items = await this.prisma.product.findMany({
       select: {
         id: true,
-        name: true,
+        name_ru: true,
       },
     });
 
@@ -262,7 +261,7 @@ export class StatiscticService {
             lostMainBalance: true,
           },
         });
-        return { item: item.name, profit: purchases._sum.lostMainBalance };
+        return { item: item.name_ru, profit: purchases._sum.lostMainBalance };
       }),
     );
     return profit;
@@ -285,7 +284,7 @@ export class StatiscticService {
       const items = await this.prisma.product.findMany({
         select: {
           id: true,
-          name: true,
+          name_ru: true,
         },
       });
 
@@ -304,7 +303,7 @@ export class StatiscticService {
               lostMainBalance: true,
             },
           });
-          return { item: item.name, profit: purchases._sum.lostMainBalance };
+          return { item: item.name_ru, profit: purchases._sum.lostMainBalance };
         }),
       );
       return profit;
@@ -327,7 +326,7 @@ export class StatiscticService {
             lostMainBalance: true,
           },
         });
-        return { item: item.name, profit: purchases._sum.lostMainBalance };
+        return { item: item.name_ru, profit: purchases._sum.lostMainBalance };
       }),
     );
     return profit;
@@ -337,7 +336,7 @@ export class StatiscticService {
     const items = await this.prisma.product.findMany({
       select: {
         id: true,
-        name: true,
+        name_ru: true,
       },
     });
 
@@ -353,7 +352,7 @@ export class StatiscticService {
           },
         });
 
-        return { item: item.name, amount: purchasesAndCount._sum.amount };
+        return { item: item.name_ru, amount: purchasesAndCount._sum.amount };
       }),
     );
 
@@ -367,7 +366,7 @@ export class StatiscticService {
     const items = await this.prisma.product.findMany({
       select: {
         id: true,
-        name: true,
+        name_ru: true,
       },
     });
 
@@ -387,7 +386,7 @@ export class StatiscticService {
           },
         });
 
-        return { item: item.name, amount: purchasesAndCount._sum.amount };
+        return { item: item.name_ru, amount: purchasesAndCount._sum.amount };
       }),
     );
 

@@ -161,9 +161,11 @@ model Server {
 
 model Product {
   id             Int            @id @default(autoincrement())
-  name           String         @db.LongText
+  name_ru        String         @db.LongText
+  name_en        String         @db.LongText
   nameID         String?
-  description    String?        @db.LongText
+  description_ru String?        @db.LongText
+  description_en String?        @db.LongText
   image          String?        @db.LongText
   type           ETypeOfProduct @default(GAME_ITEM)
   productContent Json?

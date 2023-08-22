@@ -42,6 +42,7 @@ export class StoreController {
   async buyItem(
     @Body() dto: BuyItemDto,
     @Headers('Authorization') authorization,
+    @Headers('Language') lang,
     @Res() res: Response,
   ) {
     try {
@@ -51,6 +52,7 @@ export class StoreController {
         dto.productId,
         dto.amount,
         dto.serverId,
+        lang,
       );
       if (data.status == 'Success') {
         res.status(200).json(data);
@@ -69,9 +71,9 @@ export class StoreController {
     type: ProductDto,
   })
   @ApiOperation({ summary: 'Каталог магазина в зависимости от типа сервера' })
-  getStore(@Param('id') id: number) {
+  getStore(@Param('id') id: number, @Headers('Language') lang) {
     try {
-      return this.storeService.getStoreByServerType(+id);
+      return this.storeService.getStoreByServerType(Number(id), lang);
     } catch (error) {
       throw error.message;
     }
