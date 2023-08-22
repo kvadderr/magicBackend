@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: 4dj3sK!BH4MrLhLn
+      MYSQL_DATABASE: magicow
+      MYSQL_PASSWORD: 4dj3sK!BH4MrLhLn
+    ports:
+      # <Port exposed> : <MySQL Port running inside container>
+      - '3307:3306'
+    volumes:
+      - magicow:/var/lib/mysql
+# Names our volume
+volumes:
+  magicow:
