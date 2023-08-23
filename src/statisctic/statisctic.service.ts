@@ -103,8 +103,10 @@ export class StatiscticService {
   }
 
   async ProfitRandomDate(startDate: Date, endDate: Date) {
+    const correctStartDate = new Date(startDate);
+    const correctEndDate = new Date(endDate);
     return {
-      profit: await this.getProfit(startDate, endDate),
+      profit: await this.getProfit(correctStartDate, correctEndDate),
       startDate,
       endDate,
     };
