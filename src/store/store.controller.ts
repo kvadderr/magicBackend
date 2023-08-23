@@ -42,7 +42,7 @@ export class StoreController {
   async buyItem(
     @Body() dto: BuyItemDto,
     @Headers('Authorization') authorization,
-    @Headers('Language') lang,
+    @Headers('language') lang,
     @Res() res: Response,
   ) {
     try {
