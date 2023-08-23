@@ -10,6 +10,7 @@ import {
   HttpException,
   HttpStatus,
   Headers,
+  Query,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
@@ -77,9 +78,14 @@ export class AuthController {
     @Param('id') id: string,
     @Res() res: Response,
     @Req() req: Request,
+    @Headers('signature') signature,
   ) {
     if (!id) {
       throw new HttpException('id is not provided', HttpStatus.BAD_REQUEST);
+    }
+    //TODO: найти ошибку в валидации
+    if (signature) {
+      const verifySignature = this.authService.verifySignature(signature);
     }
 
     const data = await this.authService.signUpIn(id, {
