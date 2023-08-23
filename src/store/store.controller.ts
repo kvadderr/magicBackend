@@ -42,7 +42,7 @@ export class StoreController {
   async buyItem(
     @Body() dto: BuyItemDto,
     @Headers('Authorization') authorization,
-    @Headers('language') lang,
+    @Headers('Language') lang,
     @Res() res: Response,
   ) {
     try {
@@ -102,8 +102,8 @@ export class StoreController {
   }
 
   @Get('/base')
-  getBaseSettings() {
-    return this.storeService.getBaseSettings();
+  getBaseSettings(@Headers('Language') lang) {
+    return this.storeService.getBaseSettings(lang);
   }
 
   @Get('/price/?')

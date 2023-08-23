@@ -13,6 +13,8 @@ export class StoreService {
   ) {}
 
   async getStoreByServerType(serverTypeId: number, lang: string) {
+    console.log(lang);
+
     try {
       let products = await this.prisma.product.findMany({
         where: {
@@ -589,15 +591,17 @@ export class StoreService {
     return this.prisma.serverType.findMany();
   }
 
-  async getBaseSettings() {
-    return this.prisma.baseSettings.findFirst({
-      select: {
-        saleMode: true,
-        panelURLs: true,
-        mainPage: true,
-        header: true,
-      },
-    });
+  async getBaseSettings(lang?: string) {
+    const data = await this.prisma.baseSettings.findFirst();
+    const languageData = JSON.parse(JSON.stringify(data.panelURLs));
+    switch (lang) {
+      case 'ru':
+        return { ...data, panelURLs: languageData.ru };
+      case 'en':
+        return { ...data, panelURLs: languageData.en };
+      default:
+        return data;
+    }
   }
 
   async getCurrentPrice(productId: number, amount: number) {
@@ -776,4 +780,32 @@ type ItemPacksData = {
   icon: string;
   amount: number;
   itemId: number;
+};
+
+type baseObject = {
+  id: number;
+  url: string;
+  icon: string;
+  name: string;
+};
+
+type BaseSettings = {
+  ru: {
+    contacts: baseObject[];
+    sections: baseObject[];
+    isShowContacts: boolean;
+    footer: {
+      contacts: baseObject[];
+      urlRules: string;
+    };
+  };
+  en: {
+    contacts: baseObject[];
+    sections: baseObject[];
+    isShowContacts: boolean;
+    footer: {
+      contacts: baseObject[];
+      urlRules: string;
+    };
+  };
 };
