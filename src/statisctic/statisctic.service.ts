@@ -43,7 +43,11 @@ export class StatiscticService {
     startDate.setDate(currentDate.getDate() - 30);
     startDate.setHours(0, 0, 0, 0);
 
-    return { profit: this.getProfit(startDate, endDate), startDate, endDate };
+    return {
+      profit: await this.getProfit(startDate, endDate),
+      startDate,
+      endDate,
+    };
   }
 
   async profitInThisMonth() {
@@ -55,7 +59,7 @@ export class StatiscticService {
     );
 
     return {
-      profit: this.getProfit(startOfMonth, currentDate),
+      profit: await this.getProfit(startOfMonth, currentDate),
       startOfMonth,
       currentDate,
     };
@@ -99,7 +103,11 @@ export class StatiscticService {
   }
 
   async ProfitRandomDate(startDate: Date, endDate: Date) {
-    return { profit: this.getProfit(startDate, endDate), startDate, endDate };
+    return {
+      profit: await this.getProfit(startDate, endDate),
+      startDate,
+      endDate,
+    };
   }
 
   async avarageDeposit() {
