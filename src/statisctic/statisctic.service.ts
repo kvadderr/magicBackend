@@ -286,12 +286,38 @@ export class StatiscticService {
     const correctEndDate = new Date(endDate);
 
     if (serverId) {
+      //TODO: сделать роут "Доход с каждого товара за выбранный период на указанном сервере"
       const server = await this.prisma.server.findFirstOrThrow({
         where: {
           id: serverId,
         },
       });
+      const productsOnServer = await this.prisma.inventory.findMany({
+        where: {
+          serverId: server.id,
+          status: 'ON_SERVER',
+        },
+        include: {
+          product: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+      const itemIds = Array.from(
+        new Set(
+          productsOnServer.map((el) => {
+            return el.product.id;
+          }),
+        ),
+      );
       const items = await this.prisma.product.findMany({
+        where: {
+          id: {
+            in: itemIds,
+          },
+        },
         select: {
           id: true,
           name_ru: true,

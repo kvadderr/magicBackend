@@ -186,6 +186,7 @@ export class StoreService {
               let productPrice = Math.round(
                 product.price * ((100 - product.saleDiscount) / 100) * amount,
               );
+
               //productPrice -= user.bonusBalance;
               if (productPrice - user.bonusBalance < 0) {
                 await tx.user.update({
@@ -360,9 +361,13 @@ export class StoreService {
                 );
               }
             } else {
-              let productPrice = Math.round(
-                product.price * ((100 - product.discount) / 100) * amount,
-              );
+              let productPrice;
+              product.discount != 1
+                ? (productPrice = Math.round(
+                    product.price * ((100 - product.discount) / 100) * amount,
+                  ))
+                : (productPrice = product.price * amount);
+
               //productPrice -= user.bonusBalance;
               if (productPrice - user.bonusBalance < 0) {
                 await tx.user.update({

@@ -99,14 +99,19 @@ export class StatiscticController {
     return this.statService.profitPerItem();
   }
 
-  @Get('/profitPerItemOnRandomDate/?')
+  @Get('/profitPerItemOnRandomDateOnServer/?')
   @UseGuards(RolesGuard)
   @Roles('ADMINISTRATOR')
   profitPerItemOnRandomDate(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
+    @Query('serverId') serverId: string,
   ) {
-    return this.statService.profitPerServerOnRandomDate(startDate, endDate);
+    return this.statService.profitPerItemOnRandomDate(
+      startDate,
+      endDate,
+      Number(serverId),
+    );
   }
 
   @Get('/countOfProducts')

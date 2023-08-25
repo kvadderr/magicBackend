@@ -69,8 +69,6 @@ export class TokenService {
 
       return userData;
     } catch (e) {
-      console.log(e);
-
       const currentToken = await this.prisma.token.findFirst({
         where: { token },
       });
