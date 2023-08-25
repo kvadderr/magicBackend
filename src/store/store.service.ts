@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { Server, Product } from '@prisma/client';
+import { Server, Product, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TokenService } from 'src/token/token.service';
 import { UsersService } from 'src/users/users.service';
@@ -152,7 +152,20 @@ export class StoreService {
         }
       }
 
+      const user = await this.userService.findById(isUser.id);
+
+      if (product.type == 'CURRENCY') {
+        return this.buyCurrency(
+          amount,
+          product,
+          user,
+          lang,
+          product.serverTypeId,
+        );
+      }
+
       let server: Server;
+      let finalPrice = 0;
 
       if (serverId !== 0) {
         server = await this.prisma.server.findFirstOrThrow({
@@ -162,14 +175,15 @@ export class StoreService {
         });
       }
 
-      const user = await this.userService.findById(isUser.id);
       const saleSetting = await this.prisma.baseSettings.findFirst();
       await this.prisma.$transaction(async (tx) => {
         switch (saleSetting.saleMode) {
           case true:
             if (
               user.mainBalance + user.bonusBalance <
-              product.price * ((100 - product.saleDiscount) / 100) * amount
+              Math.round(
+                product.price * ((100 - product.saleDiscount) / 100) * amount,
+              )
             ) {
               if (lang == 'ru') {
                 throw new HttpException(
@@ -345,10 +359,12 @@ export class StoreService {
             }
             break;
           case false:
-            if (
-              user.mainBalance + user.bonusBalance <
-              product.price * ((100 - product.discount) / 100) * amount
-            ) {
+            product.discount != 1
+              ? (finalPrice = Math.round(
+                  product.price * ((100 - product.discount) / 100) * amount,
+                ))
+              : (finalPrice = product.price * amount);
+            if (user.mainBalance + user.bonusBalance < finalPrice) {
               if (lang == 'ru') {
                 throw new HttpException(
                   'Недостаточно средств для покупки',
@@ -592,6 +608,145 @@ export class StoreService {
     }
   }
 
+  async buyCurrency(
+    amount: number,
+    currency: Product,
+    user: User,
+    lang: string,
+    serverTypeID: number,
+  ) {
+    try {
+      const currectPrice = await this.getPriceForCurrency(currency.id, amount);
+      console.log(currectPrice);
+
+      await this.prisma.$transaction(async (tx) => {
+        if (user.mainBalance + user.bonusBalance < currectPrice.finalPrice) {
+          if (lang == 'ru') {
+            throw new HttpException(
+              'Недостаточно средств для покупки',
+              HttpStatus.FORBIDDEN,
+            );
+          } else if (lang == 'en') {
+            throw new HttpException(
+              'Not enough funds to buy',
+              HttpStatus.FORBIDDEN,
+            );
+          }
+        } else {
+          if (currectPrice.finalPrice - user.bonusBalance < 0) {
+            await tx.user.update({
+              where: {
+                id: user.id,
+              },
+              data: {
+                bonusBalance: user.bonusBalance - currectPrice.finalPrice,
+                lastActivity: new Date(),
+              },
+            });
+
+            const currentDate = new Date();
+
+            // Преобразование к формату DD.MM.YY
+            const day = String(currentDate.getDate()).padStart(2, '0');
+            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+            const year = String(currentDate.getFullYear()).slice(-2);
+
+            const formattedDate = `${day}.${month}.${year}`;
+
+            const purchase = await tx.purchase.create({
+              data: {
+                amount,
+                productId: currency.id,
+                userId: user.id,
+                lostBonusBalance: currectPrice.finalPrice,
+                lostMainBalance: 0,
+                refund: false,
+                dateOfPurchase: formattedDate,
+              },
+            });
+
+            let inventoryObject: InventoryData = {
+              amount: amount,
+              productId: currency.id,
+              serverTypeId: serverTypeID,
+              historyOfPurchaseId: purchase.id,
+              userId: user.id,
+              serverId: null,
+              serverName: null,
+            };
+
+            await tx.inventory.create({
+              data: {
+                ...inventoryObject,
+              },
+            });
+          } else {
+            await tx.user.update({
+              where: {
+                id: user.id,
+              },
+              data: {
+                bonusBalance: 0,
+                mainBalance:
+                  user.mainBalance +
+                  (user.bonusBalance - currectPrice.finalPrice),
+                lastActivity: new Date(),
+              },
+            });
+
+            const currentDate = new Date();
+
+            // Преобразование к формату DD.MM.YY
+            const day = String(currentDate.getDate()).padStart(2, '0');
+            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+            const year = String(currentDate.getFullYear()).slice(-2);
+
+            const formattedDate = `${day}.${month}.${year}`;
+
+            const purchase = await tx.purchase.create({
+              data: {
+                amount,
+                productId: currency.id,
+                userId: user.id,
+                lostBonusBalance: user.bonusBalance,
+                lostMainBalance: -(user.bonusBalance - currectPrice.finalPrice),
+                refund: false,
+                dateOfPurchase: formattedDate,
+              },
+            });
+            let inventoryObject: InventoryData = {
+              amount: amount,
+              productId: currency.id,
+              serverTypeId: serverTypeID,
+              historyOfPurchaseId: purchase.id,
+              userId: user.id,
+              serverId: null,
+              serverName: null,
+            };
+
+            await tx.inventory.create({
+              data: {
+                ...inventoryObject,
+              },
+            });
+          }
+        }
+      });
+      return {
+        status: 'Success',
+        data: {},
+        message: 'Покупка успешно произведена',
+      };
+    } catch (error) {
+      console.log(error);
+
+      return {
+        status: 'Error',
+        message: error.message,
+      };
+    }
+  }
+
   async getTypes() {
     return this.prisma.serverType.findMany();
   }
@@ -730,17 +885,28 @@ export class StoreService {
                   type: 'money',
                 };
               }
+
               return {
-                finalPrice: Math.round(
-                  amount * product.price * ((100 - product.discount) / 100),
-                ),
+                finalPrice:
+                  product.discount != 1
+                    ? Math.round(
+                        product.price *
+                          ((100 - product.discount) / 100) *
+                          amount,
+                      )
+                    : product.price * amount,
                 type: 'money',
               };
             } else {
               return {
-                finalPrice: Math.round(
-                  amount * product.price * ((100 - product.discount) / 100),
-                ),
+                finalPrice:
+                  product.discount != 1
+                    ? Math.round(
+                        product.price *
+                          ((100 - product.discount) / 100) *
+                          amount,
+                      )
+                    : product.price * amount,
                 type: 'money',
               };
             }
