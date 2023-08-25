@@ -625,15 +625,20 @@ export class StoreService {
       });
 
       const settings = await this.getBaseSettings();
-
+      let currentPrice = 0;
       if (settings.saleMode) {
-        const currentPrice =
-          product.price * amount * ((100 - product.saleDiscount) / 100);
+        currentPrice = Math.round(
+          product.price * amount * ((100 - product.saleDiscount) / 100),
+        );
         return currentPrice;
       }
 
-      const currentPrice =
-        product.price * amount * ((100 - product.discount) / 100);
+      product.discount != 1
+        ? (currentPrice = Math.round(
+            product.price * ((100 - product.discount) / 100) * amount,
+          ))
+        : (currentPrice = product.price * amount);
+
       return currentPrice;
     } catch (error) {
       console.log(error);

@@ -9,7 +9,7 @@ import {
 import { StatiscticService } from './statisctic.service';
 import { Roles } from 'src/auth/guards/roles-guard.decorator';
 import { RolesGuard } from 'src/auth/guards/auth.guard';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @Controller('statisctic')
 @ApiTags('statisctic')
@@ -18,6 +18,7 @@ export class StatiscticController {
 
   @Get('/today')
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Доход за сегодня' })
   @Roles('ADMINISTRATOR')
   profitToday() {
     return this.statService.profitToday();
@@ -25,6 +26,7 @@ export class StatiscticController {
 
   @Get('/last30')
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Доход за 30 дней' })
   @Roles('ADMINISTRATOR')
   profitLast30Days() {
     return this.statService.profitLast30Days();
@@ -32,6 +34,7 @@ export class StatiscticController {
 
   @Get('/month')
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Доход за текущий месяц' })
   @Roles('ADMINISTRATOR')
   profitInThisMonth() {
     return this.statService.profitInThisMonth();
@@ -39,6 +42,7 @@ export class StatiscticController {
 
   @Get('/allTime')
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Доход за всё время' })
   @Roles('ADMINISTRATOR')
   ProfitAllTime() {
     return this.statService.ProfitAllTime();
@@ -46,6 +50,7 @@ export class StatiscticController {
 
   @Get('/perDay')
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Разбивка дохода по дням и месяцам' }) //TODO: разбивку по дням есть, надо по месяцам
   @Roles('ADMINISTRATOR')
   profitPerDay() {
     return this.statService.profitPerDay();
@@ -53,6 +58,7 @@ export class StatiscticController {
 
   @Get('/randomDate/?')
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Доход за выбранный период' })
   @Roles('ADMINISTRATOR')
   ProfitRandomDate(
     @Query('startDate') startDate: Date,
@@ -63,6 +69,7 @@ export class StatiscticController {
 
   @Get('/avgDeposite')
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Средняя сумма депозита' })
   @Roles('ADMINISTRATOR')
   avarageDeposit() {
     return this.statService.avarageDeposit();
@@ -70,6 +77,10 @@ export class StatiscticController {
 
   @Get('/avgDepositePerUser')
   @UseGuards(RolesGuard)
+  @ApiOperation({
+    summary:
+      'Среднее количество депозитов одного пользователя в месяц (считается среди тех, кто совершал депозит)',
+  })
   @Roles('ADMINISTRATOR')
   avarageDepositPerUser() {
     return this.statService.avarageDepositPerUser();
@@ -77,6 +88,7 @@ export class StatiscticController {
 
   @Get('/profitPerServer')
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Доход с каждого сервера' })
   @Roles('ADMINISTRATOR')
   profitOnServer() {
     return this.statService.profitOnServer();
@@ -84,6 +96,7 @@ export class StatiscticController {
 
   @Get('/profitPerServerOnRandomDate/?')
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Доход с каждого сервера за выбранный период' })
   @Roles('ADMINISTRATOR')
   profitPerServerOnRandomDate(
     @Query('startDate') startDate: string,
@@ -94,6 +107,7 @@ export class StatiscticController {
 
   @Get('/profitPerItem')
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Доход с каждого товара' })
   @Roles('ADMINISTRATOR')
   profitPerItem() {
     return this.statService.profitPerItem();
@@ -101,6 +115,10 @@ export class StatiscticController {
 
   @Get('/profitPerItemOnRandomDateOnServer/?')
   @UseGuards(RolesGuard)
+  @ApiOperation({
+    summary:
+      'Доход с каждого товара за выбранный период / Доход с каждого товара за выбранный период на указанном сервере',
+  })
   @Roles('ADMINISTRATOR')
   profitPerItemOnRandomDate(
     @Query('startDate') startDate: string,
@@ -116,6 +134,7 @@ export class StatiscticController {
 
   @Get('/countOfProducts')
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Количество покупок товара' })
   @Roles('ADMINISTRATOR')
   countOfProducts() {
     return this.statService.countOfProducts();
@@ -123,6 +142,7 @@ export class StatiscticController {
 
   @Get('/countOfProductsByRandomDate/?')
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Количество покупок товара за выбранный период' })
   @Roles('ADMINISTRATOR')
   countOfProductsByRandomDate(
     @Query('startDate') startDate: string,
@@ -133,6 +153,7 @@ export class StatiscticController {
 
   @Get('/getVisitors/:type')
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Количество посетителей за: день, месяц' })
   @Roles('ADMINISTRATOR')
   getVisitors(@Param('type') type: string) {
     return this.statService.getVisitors(type);
@@ -140,6 +161,7 @@ export class StatiscticController {
 
   @Get('/getVisitorsPerType/:type')
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Разбивка по дням, месяцам ' })
   @Roles('ADMINISTRATOR')
   visitorsPerDayMonth(@Param('type') type: string) {
     return this.statService.visitorsPerDayMonth(type);
