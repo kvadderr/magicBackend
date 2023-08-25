@@ -13,8 +13,6 @@ export class StoreService {
   ) {}
 
   async getStoreByServerType(serverTypeId: number, lang: string) {
-    console.log(lang);
-
     try {
       let products = await this.prisma.product.findMany({
         where: {
@@ -515,7 +513,6 @@ export class StoreService {
                   const packs: ItemPacks = JSON.parse(
                     JSON.stringify(product.productContent),
                   );
-                  console.log(packs.data);
 
                   for (let i = 0; i < packs.data.length; i++) {
                     await tx.inventory.create({
@@ -617,7 +614,6 @@ export class StoreService {
   ) {
     try {
       const currectPrice = await this.getPriceForCurrency(currency.id, amount);
-      console.log(currectPrice);
 
       await this.prisma.$transaction(async (tx) => {
         if (user.mainBalance + user.bonusBalance < currectPrice.finalPrice) {

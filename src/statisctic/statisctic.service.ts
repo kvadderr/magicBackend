@@ -133,7 +133,6 @@ export class StatiscticService {
     const startDate = new Date(currentDate);
     startDate.setDate(currentDate.getDate() - 30);
     startDate.setHours(0, 0, 0, 0);
-    console.log(startDate, endDate);
 
     const averageDepositsPerMonth = await this.prisma.transaction.groupBy({
       by: ['userId'],
