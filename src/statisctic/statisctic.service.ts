@@ -39,6 +39,7 @@ export class StatiscticService {
   async profitLast30Days() {
     const currentDate = new Date();
     const endDate = new Date(currentDate);
+    endDate.setHours(23, 59, 59, 999);
     const startDate = new Date(currentDate);
     startDate.setDate(currentDate.getDate() - 30);
     startDate.setHours(0, 0, 0, 0);
@@ -105,6 +106,7 @@ export class StatiscticService {
   async ProfitRandomDate(startDate: Date, endDate: Date) {
     const correctStartDate = new Date(startDate);
     const correctEndDate = new Date(endDate);
+    correctEndDate.setHours(23, 59, 59, 999);
     return {
       profit: await this.getProfit(correctStartDate, correctEndDate),
       startDate,
@@ -130,6 +132,7 @@ export class StatiscticService {
   async avarageDepositPerUser() {
     const currentDate = new Date();
     const endDate = new Date(currentDate);
+    endDate.setHours(23, 59, 59, 999);
     const startDate = new Date(currentDate);
     startDate.setDate(currentDate.getDate() - 30);
     startDate.setHours(0, 0, 0, 0);
@@ -210,6 +213,7 @@ export class StatiscticService {
 
     const correctStartDate = new Date(startDate);
     const correctEndDate = new Date(endDate);
+    correctEndDate.setHours(23, 59, 59, 999);
 
     const profitServers = await Promise.all(
       servers.map(async (server) => {
@@ -282,7 +286,9 @@ export class StatiscticService {
     serverId?: number,
   ) {
     const correctStartDate = new Date(startDate);
+    correctStartDate.setHours(0, 0, 0, 0);
     const correctEndDate = new Date(endDate);
+    correctEndDate.setHours(23, 59, 59, 999);
 
     if (serverId) {
       //TODO: сделать роут "Доход с каждого товара за выбранный период на указанном сервере"
@@ -399,7 +405,9 @@ export class StatiscticService {
 
   async countOfProductsByRandomDate(startDate: string, endDate: string) {
     const correctStartDate = new Date(startDate);
+    correctStartDate.setHours(0, 0, 0, 0);
     const correctEndDate = new Date(endDate);
+    correctEndDate.setHours(23, 59, 59, 999);
 
     const items = await this.prisma.product.findMany({
       select: {
