@@ -308,6 +308,9 @@ export class StatiscticService {
       const itemIds = Array.from(
         new Set(
           productsOnServer.map((el) => {
+            if (el.isPartOfPack) {
+              return el.packId;
+            }
             return el.product.id;
           }),
         ),
