@@ -90,6 +90,7 @@ export class StoreService {
     amount: number,
     serverId: number,
     lang: string,
+    isPack: boolean,
   ) {
     try {
       const isUser = await this.tokenService.validateAccessToken(token);
@@ -159,6 +160,7 @@ export class StoreService {
           user,
           lang,
           product.serverTypeId,
+          isPack,
         );
       }
 
@@ -611,9 +613,14 @@ export class StoreService {
     user: User,
     lang: string,
     serverTypeID: number,
+    isPack: boolean,
   ) {
     try {
-      const currectPrice = await this.getPriceForCurrency(currency.id, amount);
+      const currectPrice = await this.getPriceForCurrency(
+        currency.id,
+        isPack,
+        amount,
+      );
 
       await this.prisma.$transaction(async (tx) => {
         if (user.mainBalance + user.bonusBalance < currectPrice.finalPrice) {
@@ -801,7 +808,12 @@ export class StoreService {
     }
   }
 
-  async getPriceForCurrency(productId: number, amount?: number, rubs?: number) {
+  async getPriceForCurrency(
+    productId: number,
+    isPack?: boolean,
+    amount?: number,
+    rubs?: number,
+  ) {
     try {
       if (rubs && amount) {
         throw new HttpException(
@@ -820,17 +832,24 @@ export class StoreService {
       switch (settings.saleMode) {
         case true:
           if (amount) {
-            const packs: Packs = JSON.parse(
-              JSON.stringify(product.productContent),
-            );
+            if (isPack) {
+              const packs: Packs = JSON.parse(
+                JSON.stringify(product.productContent),
+              );
 
-            const finalPrice = packs.data.find((item) => {
-              if (item.count == amount) {
-                return item;
+              const finalPrice = packs.data.find((item) => {
+                if (item.count == amount) {
+                  return item;
+                }
+              });
+
+              if (!finalPrice) {
+                throw new HttpException(
+                  'Pack not found',
+                  HttpStatus.BAD_REQUEST,
+                );
               }
-            });
 
-            if (finalPrice) {
               if (finalPrice.procent > product.saleDiscount) {
                 return {
                   finalPrice: Math.round(
@@ -855,24 +874,33 @@ export class StoreService {
             }
           } else if (rubs) {
             return {
-              amount: Math.round(rubs / (product.price * product.saleDiscount)),
+              amount: Math.round(
+                rubs / (product.price * ((100 - product.saleDiscount) / 100)),
+              ),
               type: 'currency',
             };
           }
           break;
         case false:
           if (amount) {
-            const packs: Packs = JSON.parse(
-              JSON.stringify(product.productContent),
-            );
+            if (isPack) {
+              const packs: Packs = JSON.parse(
+                JSON.stringify(product.productContent),
+              );
 
-            const finalPrice = packs.data.find((item) => {
-              if (item.count == amount) {
-                return item;
+              const finalPrice = packs.data.find((item) => {
+                if (item.count == amount) {
+                  return item;
+                }
+              });
+
+              if (!finalPrice) {
+                throw new HttpException(
+                  'Pack not found',
+                  HttpStatus.BAD_REQUEST,
+                );
               }
-            });
 
-            if (finalPrice) {
               if (finalPrice.procent > product.discount) {
                 return {
                   finalPrice: Math.round(
@@ -908,7 +936,13 @@ export class StoreService {
             }
           } else if (rubs) {
             return {
-              amount: Math.round(rubs / (product.price * product.discount)),
+              amount: Math.round(
+                rubs /
+                  (product.price *
+                    (product.discount != 1
+                      ? (100 - product.discount) / 100
+                      : product.discount)),
+              ),
               type: 'currency',
             };
           }
@@ -918,7 +952,7 @@ export class StoreService {
     } catch (error) {
       console.log(error);
 
-      return {
+      throw {
         status: 'Error',
         message: error.message,
       };

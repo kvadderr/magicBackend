@@ -53,6 +53,7 @@ export class StoreController {
         dto.amount,
         dto.serverId,
         lang,
+        dto.isPack,
       );
       if (data.status == 'Success') {
         res.status(200).json(data);
@@ -119,9 +120,11 @@ export class StoreController {
     @Query('id') productId: string,
     @Query('amount') amount: string,
     @Query('rubs') rubs: string,
+    @Query('isPack') isPack: string,
   ) {
     return this.storeService.getPriceForCurrency(
       Number(productId),
+      Boolean(isPack),
       Number(amount),
       Number(rubs),
     );

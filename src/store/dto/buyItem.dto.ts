@@ -7,4 +7,6 @@ export class BuyItemDto {
   readonly amount: number;
   @ApiProperty()
   readonly serverId?: number;
+  @ApiProperty()
+  readonly isPack?: boolean;
 }
