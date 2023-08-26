@@ -38,7 +38,7 @@ export class AuthController {
   @Get('/refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
     const data = await this.authService.refresh(req.cookies.refreshToken, {
-      clientIp: req.clientIp,
+      clientIp: req.headers['x-real-ip'].toString(),
       browser: req.browser,
       deviceName: req.deviceName,
       deviceType: req.deviceType,
@@ -89,7 +89,7 @@ export class AuthController {
     }
 
     const data = await this.authService.signUpIn(id, {
-      clientIp: req.clientIp,
+      clientIp: req.headers['x-real-ip'].toString(),
       browser: req.browser,
       deviceName: req.deviceName,
       deviceType: req.deviceType,
