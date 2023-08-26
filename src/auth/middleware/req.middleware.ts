@@ -20,7 +20,10 @@ export class UserAgentMiddleware implements NestMiddleware {
     const parser = new UAParser();
     parser.setUA(req.headers['user-agent']);
 
+    console.log(parser);
+
     const device = parser.getDevice();
+    console.log(device);
 
     if (device.model) {
       if (device.type == 'Macintosh') {
@@ -48,14 +51,9 @@ export class UserAgentMiddleware implements NestMiddleware {
       req.browser = 'postman';
     }
 
-    const clientIp =
-      req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const clientIp = req.headers['x-real-ip'];
 
-    if (clientIp.toString().split(':').at(-1) === '1') {
-      req.clientIp = '127.0.0.1';
-    } else {
-      req.clientIp = clientIp.toString().split(':').at(-1);
-    }
+    req.clientIp = clientIp.toString();
 
     next();
   }
