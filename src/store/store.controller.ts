@@ -104,7 +104,7 @@ export class StoreController {
 
   @Get('/base')
   getBaseSettings(@Headers('Language') lang) {
-    return this.storeService.getBaseSettings(lang);
+    return this.storeService.getBaseSettings('ru');
   }
 
   @Get('/price/?')
@@ -122,9 +122,12 @@ export class StoreController {
     @Query('rubs') rubs: string,
     @Query('isPack') isPack: string,
   ) {
+    let flag = false;
+    isPack == 'false' ? (flag = false) : (flag = true);
+
     return this.storeService.getPriceForCurrency(
       Number(productId),
-      Boolean(isPack),
+      flag,
       Number(amount),
       Number(rubs),
     );
