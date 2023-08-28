@@ -20,10 +20,7 @@ export class UserAgentMiddleware implements NestMiddleware {
     const parser = new UAParser();
     parser.setUA(req.headers['user-agent']);
 
-    console.log(parser);
-
     const device = parser.getDevice();
-    console.log(device);
 
     if (device.model) {
       if (device.type == 'Macintosh') {
