@@ -186,10 +186,11 @@ model Product {
   blockSize         Int     @default(1)
   isBackgroundImage Boolean @default(false) // картинка на бекграунде или нет
 
-  buttonColor EButtonColor @default(BLUE)
-  textButton  String?
-  iconButton  String?
-  height      Int?
+  buttonColor   EButtonColor @default(BLUE)
+  textButton    String?
+  textButton_en String?
+  iconButton    String?
+  height        Int?
 
   Purchase  Purchase[]
   Inventory Inventory[]

@@ -22,11 +22,21 @@ export class StoreService {
       });
       if (lang == 'ru') {
         products = products.map((el) => {
-          return { ...el, description: el.description_ru, name: el.name_ru };
+          return {
+            ...el,
+            description: el.description_ru,
+            name: el.name_ru,
+            textButton: el.textButton,
+          };
         });
       } else if (lang == 'en') {
         products = products.map((el) => {
-          return { ...el, description: el.description_en, name: el.name_en };
+          return {
+            ...el,
+            description: el.description_en,
+            name: el.name_en,
+            textButton: el.textButton_en,
+          };
         });
       }
       const siteSettings = await this.prisma.baseSettings.findFirst();

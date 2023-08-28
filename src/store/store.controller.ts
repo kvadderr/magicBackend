@@ -104,7 +104,7 @@ export class StoreController {
 
   @Get('/base')
   getBaseSettings(@Headers('Language') lang) {
-    return this.storeService.getBaseSettings('ru');
+    return this.storeService.getBaseSettings(lang);
   }
 
   @Get('/price/?')
