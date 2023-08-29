@@ -21,7 +21,27 @@ export class StoreService {
         },
       });
       if (lang == 'ru') {
+        let ruProductConent;
         products = products.map((el) => {
+          if (JSON.parse(JSON.stringify(el.productContent))) {
+            ruProductConent = JSON.parse(JSON.stringify(el.productContent));
+            if (ruProductConent.ru) {
+              return {
+                ...el,
+                description: el.description_ru,
+                name: el.name_ru,
+                textButton: el.textButton,
+                productContent: ruProductConent.ru,
+              };
+            }
+            return {
+              ...el,
+              description: el.description_ru,
+              name: el.name_ru,
+              textButton: el.textButton,
+            };
+          }
+
           return {
             ...el,
             description: el.description_ru,
@@ -30,7 +50,26 @@ export class StoreService {
           };
         });
       } else if (lang == 'en') {
+        let enProductConent;
         products = products.map((el) => {
+          if (JSON.parse(JSON.stringify(el.productContent))) {
+            enProductConent = JSON.parse(JSON.stringify(el.productContent));
+            if (enProductConent.en) {
+              return {
+                ...el,
+                description: el.description_en,
+                name: el.name_en,
+                textButton: el.textButton_en,
+                productContent: enProductConent.en,
+              };
+            }
+            return {
+              ...el,
+              description: el.description_en,
+              name: el.name_en,
+              textButton: el.textButton_en,
+            };
+          }
           return {
             ...el,
             description: el.description_en,
