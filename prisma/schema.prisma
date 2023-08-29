@@ -211,7 +211,7 @@ model Promocodes {
   itemSet           String?  @db.LongText
 }
 
-model baseSettings {
+model BaseSettings {
   id           Int     @id @default(autoincrement())
   header       String  @db.LongText
   saleMode     Boolean @default(false)
@@ -222,7 +222,7 @@ model baseSettings {
   panelURLs    Json?
 }
 
-model urlSettings {
+model UrlSettings {
   id            Int        @id @default(autoincrement())
   icon          String?    @db.LongText
   text          String?    @db.LongText // заголовок страницы
