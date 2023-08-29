@@ -3,13 +3,16 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   Param,
   Post,
   Put,
 } from '@nestjs/common';
 import { CustompageService } from './custompage.service';
 import { CreatePageDto } from './dto/createPage.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Custom pages')
 @Controller('page')
 export class CustompageController {
   constructor(private readonly pageService: CustompageService) {}
@@ -20,8 +23,8 @@ export class CustompageController {
   }
 
   @Get('/custom/:id')
-  getPageByUrl(@Param('id') id: string) {
-    return this.pageService.getPageByUrl(Number(id));
+  getPageByUrl(@Param('id') id: string, @Headers('Language') lang) {
+    return this.pageService.getPageByUrl(Number(id), lang);
   }
 
   @Get('/')

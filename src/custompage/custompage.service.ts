@@ -33,7 +33,7 @@ export class CustompageService {
     return newPage;
   }
 
-  async getPageByUrl(id: number) {
+  async getPageByUrl(id: number, lang: string) {
     const page = await this.prisma.urlSettings.findFirst({
       where: {
         id,
@@ -42,6 +42,14 @@ export class CustompageService {
 
     if (page.hidden) {
       throw new HttpException('Страница недоступна', HttpStatus.FORBIDDEN);
+    }
+
+    if (lang == 'ru') {
+      const ruContent = JSON.parse(JSON.stringify(page.sections));
+      return { ...page, sections: ruContent.ru };
+    } else if (lang == 'en') {
+      const enContent = JSON.parse(JSON.stringify(page.sections));
+      return { ...page, sections: enContent.en };
     }
     return page;
   }
