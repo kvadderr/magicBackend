@@ -342,11 +342,11 @@ export class StoreService {
                   const packs: ItemPacks = JSON.parse(
                     JSON.stringify(product.productContent),
                   );
-                  packs.data.forEach(async (el) => {
+                  for (let i = 0; i < packs.data.length; i++) {
                     await tx.inventory.create({
                       data: {
-                        amount: el.amount,
-                        productId: el.itemId,
+                        amount: packs.data[i].amount,
+                        productId: packs.data[i].itemId,
                         serverId: inventoryObject.serverId,
                         serverName: inventoryObject.serverName,
                         serverTypeId: inventoryObject.serverTypeId,
@@ -357,7 +357,7 @@ export class StoreService {
                         packId: product.id,
                       },
                     });
-                  });
+                  }
                 } else {
                   await tx.inventory.create({
                     data: {
@@ -448,11 +448,11 @@ export class StoreService {
                   const packs: ItemPacks = JSON.parse(
                     JSON.stringify(product.productContent),
                   );
-                  packs.data.forEach(async (el) => {
+                  for (let i = 0; i < packs.data.length; i++) {
                     await tx.inventory.create({
                       data: {
-                        amount: el.amount,
-                        productId: el.itemId,
+                        amount: packs.data[i].amount,
+                        productId: packs.data[i].itemId,
                         serverId: inventoryObject.serverId,
                         serverName: inventoryObject.serverName,
                         serverTypeId: inventoryObject.serverTypeId,
@@ -463,7 +463,7 @@ export class StoreService {
                         packId: product.id,
                       },
                     });
-                  });
+                  }
                 } else {
                   await tx.inventory.create({
                     data: {
