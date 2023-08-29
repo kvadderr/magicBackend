@@ -435,9 +435,7 @@ export class ApiRustService {
     sum?: number,
     discount?: number,
     productId?: number,
-  ) {
-    //TODO: спросить у Оли - делать ли этот метод - NO
-  }
+  ) {}
 }
 function getNumberByType(type: string) {
   switch (type) {

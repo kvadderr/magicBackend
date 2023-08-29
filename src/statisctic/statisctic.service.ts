@@ -493,8 +493,6 @@ export class StatiscticService {
     const month = String(currentDate.getMonth() + 1).padStart(2, '0');
     const year = String(currentDate.getFullYear()).slice(-2);
 
-    console.log(month);
-
     switch (type) {
       case 'day':
         const groupedVisiotrsPerDay = await this.prisma.visitors.groupBy({

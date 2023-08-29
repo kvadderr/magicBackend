@@ -83,9 +83,8 @@ export class AuthController {
     if (!id) {
       throw new HttpException('id is not provided', HttpStatus.BAD_REQUEST);
     }
-    //TODO: найти ошибку в валидации
     if (signature) {
-      const verifySignature = this.authService.verifySignature(signature);
+      await this.authService.verifySignature(signature);
     }
 
     const data = await this.authService.signUpIn(id, {

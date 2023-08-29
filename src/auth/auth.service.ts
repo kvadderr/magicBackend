@@ -234,7 +234,7 @@ export class AuthService {
     );
     queryParams[index].value = 'check_authentication';
 
-    if (!sign || queryParams.length === 0) {
+    if (queryParams.length === 0) {
       return false;
     }
 
@@ -247,8 +247,6 @@ export class AuthService {
       '',
     );
 
-    console.log(`https://steamcommunity.com/openid/login?${queryString}`);
-
     const userSteamData = await firstValueFrom(
       this.httpService
         .get(`https://steamcommunity.com/openid/login?${queryString}`)
@@ -259,10 +257,12 @@ export class AuthService {
           }),
         ),
     );
-
-    console.log(userSteamData.data);
-
-    // Создаём хеш получившейся строки на основе секретного ключа.
+    const flag = userSteamData.data.split('\n')[1].split(':')[1];
+    if (flag == 'true') {
+      return 'success';
+    } else {
+      throw new HttpException('verification failed', HttpStatus.FORBIDDEN);
+    }
   }
 }
 
