@@ -48,7 +48,8 @@ export class UsersService {
           steamName: mainData.personaname,
           steamID: mainData.steamid,
           steamAvatar: mainData.avatarfull,
-          mainBalance: config.startBalance,
+          mainBalance: 0,
+          bonusBalance: config.startBalance,
         },
       });
 
