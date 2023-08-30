@@ -83,6 +83,7 @@ export class StoreController {
   @Post('/refill/:amount')
   refillMoney(
     @Headers('Authorization') authorization,
+    @Headers('Language') lang,
     @Param('amount') amount: string,
   ) {
     try {
@@ -91,7 +92,7 @@ export class StoreController {
       }
       const token = authorization.split(' ')[1];
 
-      return this.storeService.refill(Number(amount), token);
+      return this.storeService.refill(Number(amount), token, lang);
     } catch (error) {
       throw error.message;
     }

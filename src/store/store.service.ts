@@ -84,16 +84,14 @@ export class StoreService {
           if (el.saleDiscount != 1) {
             return {
               ...el,
-              price: Math.round(
-                el.price * el.amount * ((100 - el.saleDiscount) / 100),
-              ),
+              price: Math.round(el.price * ((100 - el.saleDiscount) / 100)),
               basePrice: el.price,
               discount: el.saleDiscount,
             };
           } else {
             return {
               ...el,
-              price: Math.round(el.price * el.saleDiscount * el.amount),
+              price: Math.round(el.price * el.saleDiscount),
               basePrice: el.price,
               discount: null,
             };
@@ -108,16 +106,14 @@ export class StoreService {
           if (el.discount != 1) {
             return {
               ...el,
-              price: Math.round(
-                el.price * el.amount * ((100 - el.discount) / 100),
-              ),
+              price: Math.round(el.price * ((100 - el.discount) / 100)),
               basePrice: el.price,
               discount: el.discount,
             };
           } else {
             return {
               ...el,
-              price: Math.round(el.price * el.amount * el.discount),
+              price: Math.round(el.price * el.discount),
               basePrice: el.price,
               discount: null,
             };
@@ -226,12 +222,13 @@ export class StoreService {
 
       const saleSetting = await this.prisma.baseSettings.findFirst();
       await this.prisma.$transaction(async (tx) => {
+        const count = amount / product.amount;
         switch (saleSetting.saleMode) {
           case true:
             if (
               user.mainBalance + user.bonusBalance <
               Math.round(
-                product.price * ((100 - product.saleDiscount) / 100) * amount,
+                product.price * ((100 - product.saleDiscount) / 100) * count,
               )
             ) {
               if (lang == 'ru') {
@@ -247,7 +244,7 @@ export class StoreService {
               }
             } else {
               let productPrice = Math.round(
-                product.price * ((100 - product.saleDiscount) / 100) * amount,
+                product.price * ((100 - product.saleDiscount) / 100) * count,
               );
 
               //productPrice -= user.bonusBalance;
@@ -410,9 +407,9 @@ export class StoreService {
           case false:
             product.discount != 1
               ? (finalPrice = Math.round(
-                  product.price * ((100 - product.discount) / 100) * amount,
+                  product.price * ((100 - product.discount) / 100) * count,
                 ))
-              : (finalPrice = product.price * amount);
+              : (finalPrice = product.price * count);
             if (user.mainBalance + user.bonusBalance < finalPrice) {
               if (lang == 'ru') {
                 throw new HttpException(
@@ -429,9 +426,9 @@ export class StoreService {
               let productPrice;
               product.discount != 1
                 ? (productPrice = Math.round(
-                    product.price * ((100 - product.discount) / 100) * amount,
+                    product.price * ((100 - product.discount) / 100) * count,
                   ))
-                : (productPrice = product.price * amount);
+                : (productPrice = product.price * count);
 
               //productPrice -= user.bonusBalance;
               if (productPrice - user.bonusBalance < 0) {
@@ -594,11 +591,19 @@ export class StoreService {
             break;
         }
       });
-      return {
-        status: 'Success',
-        data: {},
-        message: 'Покупка успешно произведена',
-      };
+      if (lang == 'ru') {
+        return {
+          status: 'Success',
+          data: {},
+          message: 'Покупка успешно произведена',
+        };
+      } else {
+        return {
+          status: 'Success',
+          data: {},
+          message: 'The purchase was made successfully',
+        };
+      }
     } catch (error) {
       console.log(error);
 
@@ -609,7 +614,7 @@ export class StoreService {
     }
   }
 
-  async refill(money: number, token: string) {
+  async refill(money: number, token: string, lang: string) {
     try {
       const isUser = await this.tokenService.validateAccessToken(token);
 
@@ -641,11 +646,19 @@ export class StoreService {
           },
         });
       });
-      return {
-        status: 'Success',
-        data: {},
-        message: 'Баланс пополнен',
-      };
+      if (lang == 'ru') {
+        return {
+          status: 'Success',
+          data: {},
+          message: 'Баланс пополнен',
+        };
+      } else {
+        return {
+          status: 'Success',
+          data: {},
+          message: 'The balance is replenished',
+        };
+      }
     } catch (error) {
       console.log(error);
 
@@ -834,17 +847,18 @@ export class StoreService {
       const settings = await this.getBaseSettings();
       let currentPrice = 0;
       if (settings.saleMode) {
+        const count = amount / product.amount;
         currentPrice = Math.round(
-          product.price * amount * ((100 - product.saleDiscount) / 100),
+          product.price * count * ((100 - product.saleDiscount) / 100),
         );
         return currentPrice;
       }
-
+      const count = amount / product.amount;
       product.discount != 1
         ? (currentPrice = Math.round(
-            product.price * ((100 - product.discount) / 100) * amount,
+            product.price * ((100 - product.discount) / 100) * count,
           ))
-        : (currentPrice = product.price * amount);
+        : (currentPrice = product.price * count);
 
       return currentPrice;
     } catch (error) {
@@ -881,24 +895,17 @@ export class StoreService {
       switch (settings.saleMode) {
         case true:
           if (amount) {
-            if (isPack) {
-              const packs: Packs = JSON.parse(
-                JSON.stringify(product.productContent),
-              );
+            const packs: Packs = JSON.parse(
+              JSON.stringify(product.productContent),
+            );
 
-              const finalPrice = packs.data.find((item) => {
-                if (item.count == amount) {
-                  return item;
-                }
-              });
-
-              if (!finalPrice) {
-                throw new HttpException(
-                  'Pack not found',
-                  HttpStatus.BAD_REQUEST,
-                );
+            const finalPrice = packs.data.find((item) => {
+              if (item.count == amount) {
+                return item;
               }
+            });
 
+            if (finalPrice) {
               if (finalPrice.procent > product.saleDiscount) {
                 return {
                   finalPrice: Math.round(
@@ -932,24 +939,17 @@ export class StoreService {
           break;
         case false:
           if (amount) {
-            if (isPack) {
-              const packs: Packs = JSON.parse(
-                JSON.stringify(product.productContent),
-              );
+            const packs: Packs = JSON.parse(
+              JSON.stringify(product.productContent),
+            );
 
-              const finalPrice = packs.data.find((item) => {
-                if (item.count == amount) {
-                  return item;
-                }
-              });
-
-              if (!finalPrice) {
-                throw new HttpException(
-                  'Pack not found',
-                  HttpStatus.BAD_REQUEST,
-                );
+            const finalPrice = packs.data.find((item) => {
+              if (item.count == amount) {
+                return item;
               }
+            });
 
+            if (finalPrice) {
               if (finalPrice.procent > product.discount) {
                 return {
                   finalPrice: Math.round(
