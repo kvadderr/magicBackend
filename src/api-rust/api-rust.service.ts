@@ -256,6 +256,13 @@ export class ApiRustService {
           },
         });
 
+        if (item.serverId != null && item.serverId != serverCandidate.id) {
+          throw new HttpException(
+            'Предмет активирован на другом сервере',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
         if (item.isPartOfPack) {
           const partsOfPacks = await tx.inventory.findMany({
             where: {
