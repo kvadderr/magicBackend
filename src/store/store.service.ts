@@ -848,12 +848,25 @@ export class StoreService {
       let currentPrice = 0;
       if (settings.saleMode) {
         const count = amount / product.amount;
+        if (product.type == 'SERVICE') {
+          return Math.round(
+            product.price * ((100 - product.saleDiscount) / 100),
+          );
+        }
         currentPrice = Math.round(
           product.price * count * ((100 - product.saleDiscount) / 100),
         );
         return currentPrice;
       }
       const count = amount / product.amount;
+      if (product.type == 'SERVICE') {
+        product.discount != 1
+          ? (currentPrice = Math.round(
+              product.price * ((100 - product.discount) / 100),
+            ))
+          : (currentPrice = product.price);
+        return currentPrice;
+      }
       product.discount != 1
         ? (currentPrice = Math.round(
             product.price * ((100 - product.discount) / 100) * count,
