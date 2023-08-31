@@ -183,6 +183,14 @@ export class ApiRustService {
       const productList = await this.prisma.inventory.findMany({
         where: {
           status: 'INVENTORY',
+          OR: [
+            {
+              serverId: serverCandidate.id,
+            },
+            {
+              serverId: null,
+            },
+          ],
           serverTypeId: serverCandidate.serverTypeId,
           userId: user.id,
         },
