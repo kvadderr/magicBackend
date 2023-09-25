@@ -912,11 +912,20 @@ export class StoreService {
               JSON.stringify(product.productContent),
             );
 
-            const finalPrice = packs.data.find((item) => {
-              if (item.count == amount) {
-                return item;
+            let finalPrice: PackData;
+
+            for (let i = packs.data.length - 1; i > -1; i--) {
+              if (amount >= packs.data[i].count) {
+                finalPrice = packs.data[i];
+                break;
               }
-            });
+            }
+
+            // const finalPrice = packs.data.find((item) => {
+            //   if (item.count == amount) {
+            //     return item;
+            //   }
+            // });
 
             if (finalPrice) {
               if (finalPrice.procent > product.saleDiscount) {
@@ -956,11 +965,20 @@ export class StoreService {
               JSON.stringify(product.productContent),
             );
 
-            const finalPrice = packs.data.find((item) => {
-              if (item.count == amount) {
-                return item;
+            let finalPrice: PackData;
+
+            for (let i = packs.data.length - 1; i > -1; i--) {
+              if (amount >= packs.data[i].count) {
+                finalPrice = packs.data[i];
+                break;
               }
-            });
+            }
+
+            // const finalPrice = packs.data.find((item) => {
+            //   if (item.count == amount) {
+            //     return item;
+            //   }
+            // });
 
             if (finalPrice) {
               if (finalPrice.procent > product.discount) {

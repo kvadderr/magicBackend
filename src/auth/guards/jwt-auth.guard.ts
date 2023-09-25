@@ -36,9 +36,17 @@ export class JwtAuthGuard implements CanActivate {
       req.user = user;
       return true;
     } catch (e) {
-      throw new UnauthorizedException({
-        message: e.message,
-      });
+      if (req.headers.language == 'ru') {
+        throw new HttpException(
+          'Пользователь не авторизован',
+          HttpStatus.NOT_ACCEPTABLE,
+        );
+      } else {
+        throw new HttpException(
+          'You are not logged in',
+          HttpStatus.NOT_ACCEPTABLE,
+        );
+      }
     }
   }
 }
