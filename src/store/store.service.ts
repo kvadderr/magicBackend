@@ -668,6 +668,62 @@ export class StoreService {
       };
     }
   }
+  //TODO: переписать возврат средств для платежки
+  async refundTransaction(id: number) {
+    try {
+      const refundMoney = await this.prisma.transaction.findFirstOrThrow({
+        where: {
+          id,
+        },
+      });
+
+      const user = await this.prisma.user.findFirstOrThrow({
+        where: {
+          id: refundMoney.userId,
+        },
+      });
+
+      await this.prisma.$transaction(async (tx) => {
+        if (user.mainBalance - refundMoney.amount < 0) {
+          throw new HttpException(
+            'Возврат невозможен, на балансе меньше необходимой суммы',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        await tx.transaction.create({
+          data: {
+            amount: refundMoney.amount,
+            method: refundMoney.method,
+            userId: refundMoney.userId,
+            status: 'REFUND',
+          },
+        });
+
+        await tx.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            mainBalance: user.mainBalance - refundMoney.amount,
+          },
+        });
+      });
+
+      return {
+        status: 'Success',
+        data: {},
+        message: `Отправлен запрос на возврат средств для ${user.steamName}`,
+      };
+    } catch (error) {
+      console.log(error);
+
+      return {
+        status: 'Error',
+        message: error.message,
+      };
+    }
+  }
 
   async buyCurrency(
     amount: number,

@@ -24,6 +24,8 @@ import {
   StantardResponseDto,
 } from 'src/profile/dto/responseProfile.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guards/auth.guard';
+import { Roles } from 'src/auth/guards/roles-guard.decorator';
 
 @ApiTags('Store')
 @Controller('store')
@@ -93,6 +95,23 @@ export class StoreController {
       const token = authorization.split(' ')[1];
 
       return this.storeService.refill(Number(amount), token, lang);
+    } catch (error) {
+      throw error.message;
+    }
+  }
+
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Возврат средств' })
+  @Roles('ADMINISTRATOR')
+  @Post('/refund/:id')
+  async refundMoney(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const data = await this.storeService.refundTransaction(Number(id));
+      if (data.status == 'Success') {
+        res.status(200).json(data);
+      } else {
+        res.status(400).json(data);
+      }
     } catch (error) {
       throw error.message;
     }

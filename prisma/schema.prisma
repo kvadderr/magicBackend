@@ -20,6 +20,7 @@ enum EStatusOfRefill {
   SUCCESS
   FALSE
   DENIED
+  REFUND
 }
 
 enum EStatusOfProductInInventory {
