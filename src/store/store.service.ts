@@ -236,7 +236,7 @@ export class StoreService {
                   'Недостаточно средств для покупки',
                   HttpStatus.FORBIDDEN,
                 );
-              } else if (lang == 'en') {
+              } else {
                 throw new HttpException(
                   'Not enough funds to buy',
                   HttpStatus.FORBIDDEN,
@@ -621,10 +621,17 @@ export class StoreService {
       const user = await this.userService.findById(isUser.id);
 
       if (money < 1) {
-        throw new HttpException(
-          'Сумма для пополнения не может быть меньше 1',
-          HttpStatus.BAD_REQUEST,
-        );
+        if (lang == 'ru') {
+          throw new HttpException(
+            'Сумма для пополнения не может быть меньше 1',
+            HttpStatus.BAD_REQUEST,
+          );
+        } else {
+          throw new HttpException(
+            'The amount to top up cannot be less than 1',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
       }
       //TODO: Переделать реализацию добавления новой транзакции для юзера, т.к есть время между самой операцией и начислением суммы. Менять статус + роут для обратного запроса для платежки
       await this.prisma.$transaction(async (tx) => {
