@@ -21,6 +21,7 @@ enum EStatusOfRefill {
   FALSE
   DENIED
   REFUND
+  IN_PROGRESS
 }
 
 enum EStatusOfProductInInventory {

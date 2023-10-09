@@ -1,5 +1,11 @@
+import { HttpService } from '@nestjs/axios';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Server, Product, User } from '@prisma/client';
+import { AxiosError } from 'axios';
+import * as crypto from 'crypto';
+import { catchError, firstValueFrom } from 'rxjs';
+import { APIKEY } from 'src/core/config';
+import { gmTerminal } from 'src/core/constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TokenService } from 'src/token/token.service';
 import { UsersService } from 'src/users/users.service';
@@ -10,6 +16,7 @@ export class StoreService {
     private readonly prisma: PrismaService,
     private readonly userService: UsersService,
     private readonly tokenService: TokenService,
+    private readonly httpService: HttpService,
   ) {}
 
   async getStoreByServerType(serverTypeId: number, lang: string) {
@@ -173,7 +180,7 @@ export class StoreService {
             HttpStatus.FORBIDDEN,
           );
         }
-      } else if (lang == 'en') {
+      } else {
         if (amount < 1) {
           throw new HttpException(
             'The quantity of the product cannot be less than 1',
@@ -416,7 +423,7 @@ export class StoreService {
                   'Недостаточно средств для покупки',
                   HttpStatus.FORBIDDEN,
                 );
-              } else if (lang == 'en') {
+              } else {
                 throw new HttpException(
                   'Not enough funds to buy',
                   HttpStatus.FORBIDDEN,
@@ -640,9 +647,33 @@ export class StoreService {
             amount: money,
             method: 'card',
             userId: user.id,
-            status: 'SUCCESS',
+            status: 'IN_PROGRESS',
           },
         });
+
+        // const paymentData = {
+        //   amount: money,
+        //   currency: 'RUB',
+        //   comment: 'Пополнение баланса',
+        //   project: 123, //! Поменять на корректный айли
+        //   user: user.steamID,
+        //   success_url: 'https://magicowgs.geryon.space',
+        //   fail_url: 'https://magicowgs.geryon.space/profile',
+        //   project_invoice: `${newMoney.id}`,
+        // };
+
+        // const signature = this.calculateHMAC(this.stringifyData(paymentData));
+
+        // const leaderboard = (
+        //   await firstValueFrom(
+        //     this.httpService.get(`${gmTerminal}`).pipe(
+        //       catchError((error: AxiosError) => {
+        //         console.error(error.response.data);
+        //         throw 'An error happened!';
+        //       }),
+        //     ),
+        //   )
+        // ).data;
 
         await tx.user.update({
           where: {
@@ -754,7 +785,7 @@ export class StoreService {
               'Недостаточно средств для покупки',
               HttpStatus.FORBIDDEN,
             );
-          } else if (lang == 'en') {
+          } else {
             throw new HttpException(
               'Not enough funds to buy',
               HttpStatus.FORBIDDEN,
@@ -860,11 +891,19 @@ export class StoreService {
           }
         }
       });
-      return {
-        status: 'Success',
-        data: {},
-        message: 'Покупка успешно произведена',
-      };
+      if (lang == 'ru') {
+        return {
+          status: 'Success',
+          data: {},
+          message: 'Покупка успешно произведена',
+        };
+      } else {
+        return {
+          status: 'Success',
+          data: {},
+          message: 'The purchase was made successfully',
+        };
+      }
     } catch (error) {
       console.log(error);
 
@@ -1100,6 +1139,35 @@ export class StoreService {
         message: error.message,
       };
     }
+  }
+
+  stringifyData(data: any, prefix = ''): string {
+    let result = '';
+
+    const sortedKeys = Object.keys(data).sort();
+
+    for (const key of sortedKeys) {
+      const value = data[key];
+
+      if (Array.isArray(value)) {
+        for (let i = 0; i < value.length; i++) {
+          result += `${prefix}${key}:${i}:${this.stringifyData(
+            value[i],
+            `${prefix}${key}:${i}:`,
+          )}`;
+        }
+      } else if (typeof value === 'object') {
+        result += this.stringifyData(value, `${prefix}${key}:`);
+      } else {
+        result += `${prefix}${key}:${value};`;
+      }
+    }
+
+    return result;
+  }
+
+  calculateHMAC(data: string) {
+    return crypto.createHmac('sha256', APIKEY).update(data).digest('hex');
   }
 }
 

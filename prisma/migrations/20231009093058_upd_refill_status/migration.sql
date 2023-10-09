@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Transaction` MODIFY `status` ENUM('SUCCESS', 'FALSE', 'DENIED', 'REFUND', 'IN_PROGRESS') NOT NULL DEFAULT 'FALSE';
