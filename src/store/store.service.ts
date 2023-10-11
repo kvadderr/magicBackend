@@ -4,7 +4,7 @@ import { Server, Product, User } from '@prisma/client';
 import { AxiosError } from 'axios';
 import * as crypto from 'crypto';
 import { catchError, firstValueFrom } from 'rxjs';
-import { APIKEY } from 'src/core/config';
+import { MONEY_SECRET_KEY, PROJECT_KEY } from 'src/core/config';
 import { gmTerminal } from 'src/core/constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TokenService } from 'src/token/token.service';
@@ -651,29 +651,32 @@ export class StoreService {
           },
         });
 
-        // const paymentData = {
-        //   amount: money,
-        //   currency: 'RUB',
-        //   comment: 'Пополнение баланса',
-        //   project: 123, //! Поменять на корректный айли
-        //   user: user.steamID,
-        //   success_url: 'https://magicowgs.geryon.space',
-        //   fail_url: 'https://magicowgs.geryon.space/profile',
-        //   project_invoice: `${newMoney.id}`,
-        // };
+        const paymentData = {
+          amount: money,
+          currency: 'RUB',
+          comment: 'Пополнение баланса',
+          project: PROJECT_KEY, //! Поменять на корректный айли
+          user: user.steamID,
+          success_url: 'https://magicowgs.geryon.space',
+          fail_url: 'https://magicowgs.geryon.space/profile',
+          project_invoice: `${newMoney.id}`,
+        };
 
-        // const signature = this.calculateHMAC(this.stringifyData(paymentData));
+        const signature = this.calculateHMAC(this.stringifyData(paymentData));
+        const finalData = { ...paymentData, signature };
 
-        // const leaderboard = (
-        //   await firstValueFrom(
-        //     this.httpService.get(`${gmTerminal}`).pipe(
-        //       catchError((error: AxiosError) => {
-        //         console.error(error.response.data);
-        //         throw 'An error happened!';
-        //       }),
-        //     ),
-        //   )
-        // ).data;
+        const moneyData = (
+          await firstValueFrom(
+            this.httpService.post(`${gmTerminal}`, finalData).pipe(
+              catchError((error: AxiosError) => {
+                console.error(error.response.data);
+                throw 'An error happened!';
+              }),
+            ),
+          )
+        ).data;
+
+        console.log(moneyData);
 
         await tx.user.update({
           where: {
@@ -1167,7 +1170,10 @@ export class StoreService {
   }
 
   calculateHMAC(data: string) {
-    return crypto.createHmac('sha256', APIKEY).update(data).digest('hex');
+    return crypto
+      .createHmac('sha256', MONEY_SECRET_KEY)
+      .update(data)
+      .digest('hex');
   }
 }
 
