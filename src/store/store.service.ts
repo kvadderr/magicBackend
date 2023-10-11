@@ -626,7 +626,7 @@ export class StoreService {
       const isUser = await this.tokenService.validateAccessToken(token);
 
       const user = await this.userService.findById(isUser.id);
-
+      let moneyData: PaymentDataResponse;
       if (money < 1) {
         if (lang == 'ru') {
           throw new HttpException(
@@ -665,7 +665,7 @@ export class StoreService {
         const signature = this.calculateHMAC(this.stringifyData(paymentData));
         const finalData = { ...paymentData, signature };
 
-        const moneyData = (
+        moneyData = (
           await firstValueFrom(
             this.httpService.post(`${gmTerminal}`, finalData).pipe(
               catchError((error: AxiosError) => {
@@ -687,16 +687,17 @@ export class StoreService {
           },
         });
       });
+
       if (lang == 'ru') {
         return {
           status: 'Success',
-          data: {},
+          data: { ...moneyData },
           message: 'Баланс пополнен',
         };
       } else {
         return {
           status: 'Success',
-          data: {},
+          data: { ...moneyData },
           message: 'The balance is replenished',
         };
       }
@@ -1231,4 +1232,11 @@ type BaseSettings = {
       urlRules: string;
     };
   };
+};
+
+type PaymentDataResponse = {
+  url: string;
+  state: string;
+  time: string;
+  signature: string;
 };

@@ -83,10 +83,11 @@ export class StoreController {
   }
 
   @Post('/refill/:amount')
-  refillMoney(
+  async refillMoney(
     @Headers('Authorization') authorization,
     @Headers('Language') lang,
     @Param('amount') amount: string,
+    @Res() res: Response,
   ) {
     try {
       if (!authorization) {
@@ -94,7 +95,8 @@ export class StoreController {
       }
       const token = authorization.split(' ')[1];
 
-      return this.storeService.refill(Number(amount), token, lang);
+      const data = await this.storeService.refill(Number(amount), token, lang);
+      res.redirect(data.data.url);
     } catch (error) {
       throw error.message;
     }
