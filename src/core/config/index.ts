@@ -19,7 +19,7 @@ export const expiresAccessToken = '7d';
 
 export const PROJECT_KEY = 485;
 export const MONEY_SECRET_KEY =
-  process.env.MONEY_SECRET_KEY || 'qy6TbCQsdzPaf8DvteBFHtZZkj10zeeU';
+  process.env.MONEY_SECRET_KEY || 'qD56qTW7DrVhhiQOvukciW35UodtvQwK';
 export const RSA_PRIVATE_KEY =
   process.env.RSA_PRIVATE_KEY ||
   `-----BEGIN RSA PRIVATE KEY-----

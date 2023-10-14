@@ -3,6 +3,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Server, Product, User } from '@prisma/client';
 import { AxiosError } from 'axios';
 import * as crypto from 'crypto';
+import axios from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { MONEY_SECRET_KEY, PROJECT_KEY } from 'src/core/config';
 import { gmTerminal } from 'src/core/constant';
@@ -626,7 +627,7 @@ export class StoreService {
       const isUser = await this.tokenService.validateAccessToken(token);
 
       const user = await this.userService.findById(isUser.id);
-      let moneyData: PaymentDataResponse;
+      let moneyData;
       if (money < 1) {
         if (lang == 'ru') {
           throw new HttpException(
@@ -653,30 +654,34 @@ export class StoreService {
 
         const paymentData = {
           amount: money,
+          project: PROJECT_KEY,
+          user: user.steamID,
           currency: 'RUB',
           comment: 'Пополнение баланса',
-          project: PROJECT_KEY, //! Поменять на корректный айли
-          user: user.steamID,
           success_url: 'https://magicowgs.geryon.space',
           fail_url: 'https://magicowgs.geryon.space/profile',
           project_invoice: `${newMoney.id}`,
+          terminal_allow_methods: ['qiwi', 'card'],
         };
 
         const signature = this.calculateHMAC(this.stringifyData(paymentData));
+
         const finalData = { ...paymentData, signature };
 
-        moneyData = (
-          await firstValueFrom(
-            this.httpService.post(`${gmTerminal}`, finalData).pipe(
+        moneyData = await firstValueFrom(
+          this.httpService
+            .post(`${gmTerminal}`, finalData, {
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+            })
+            .pipe(
               catchError((error: AxiosError) => {
                 console.error(error.response.data);
                 throw 'An error happened!';
               }),
             ),
-          )
-        ).data;
-
-        console.log(moneyData);
+        );
 
         await tx.user.update({
           where: {
@@ -1155,15 +1160,15 @@ export class StoreService {
 
       if (Array.isArray(value)) {
         for (let i = 0; i < value.length; i++) {
-          result += `${prefix}${key}:${i}:${this.stringifyData(
-            value[i],
-            `${prefix}${key}:${i}:`,
-          )}`;
+          if (i == 0) {
+            result += `${key}:${i}:${value[i]};`;
+          } else {
+            result += `${i}:${value[i]};`;
+          }
         }
-      } else if (typeof value === 'object') {
-        result += this.stringifyData(value, `${prefix}${key}:`);
+        result += ';';
       } else {
-        result += `${prefix}${key}:${value};`;
+        result += `${key}:${value};`;
       }
     }
 
