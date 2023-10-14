@@ -627,7 +627,7 @@ export class StoreService {
       const isUser = await this.tokenService.validateAccessToken(token);
 
       const user = await this.userService.findById(isUser.id);
-      let moneyData;
+      let moneyData: PaymentDataResponse;
       if (money < 1) {
         if (lang == 'ru') {
           throw new HttpException(
@@ -668,20 +668,22 @@ export class StoreService {
 
         const finalData = { ...paymentData, signature };
 
-        moneyData = await firstValueFrom(
-          this.httpService
-            .post(`${gmTerminal}`, finalData, {
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-              },
-            })
-            .pipe(
-              catchError((error: AxiosError) => {
-                console.error(error.response.data);
-                throw 'An error happened!';
-              }),
-            ),
-        );
+        moneyData = await (
+          await firstValueFrom(
+            this.httpService
+              .post(`${gmTerminal}`, finalData, {
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                },
+              })
+              .pipe(
+                catchError((error: AxiosError) => {
+                  console.error(error.response.data);
+                  throw 'An error happened!';
+                }),
+              ),
+          )
+        ).data;
 
         await tx.user.update({
           where: {
