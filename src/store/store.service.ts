@@ -3,13 +3,17 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Server, Product, User } from '@prisma/client';
 import { AxiosError } from 'axios';
 import * as crypto from 'crypto';
-import axios from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
-import { MONEY_SECRET_KEY, PROJECT_KEY } from 'src/core/config';
-import { gmTerminal } from 'src/core/constant';
+import {
+  MONEY_SECRET_KEY,
+  PRIVATE_KEY_PATH,
+  PROJECT_KEY,
+} from 'src/core/config';
+import { fail_url, gmTerminal, success_url } from 'src/core/constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TokenService } from 'src/token/token.service';
 import { UsersService } from 'src/users/users.service';
+import { exec } from 'child_process';
 
 @Injectable()
 export class StoreService {
@@ -646,7 +650,7 @@ export class StoreService {
         const newMoney = await tx.transaction.create({
           data: {
             amount: money,
-            method: 'card',
+            method: 'IN PROGRESS',
             userId: user.id,
             status: 'IN_PROGRESS',
           },
@@ -658,9 +662,9 @@ export class StoreService {
           user: user.steamID,
           currency: 'RUB',
           comment: 'Пополнение баланса',
-          success_url: 'https://magicowgs.geryon.space',
-          fail_url: 'https://magicowgs.geryon.space/profile',
-          project_invoice: `${newMoney.id}`,
+          success_url: success_url,
+          fail_url: fail_url,
+          project_invoice: `test`,
           terminal_allow_methods: ['qiwi', 'card'],
         };
 
@@ -684,15 +688,6 @@ export class StoreService {
               ),
           )
         ).data;
-
-        await tx.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            mainBalance: user.mainBalance + money,
-          },
-        });
       });
 
       if (lang == 'ru') {
@@ -720,7 +715,41 @@ export class StoreService {
   //TODO: переписать возврат средств для платежки
   async refundTransaction(id: number) {
     try {
-      const refundMoney = await this.prisma.transaction.findFirstOrThrow({
+      const paymentData = {
+        project: PROJECT_KEY,
+        projectId: `test`,
+        user: 76561198075427441,
+        ip: '46.147.216.119',
+        amount: 25,
+        wallet: '2202202226924359',
+        currency: 'RUB',
+        description: 'Рефанд',
+        success_url: success_url,
+        fail_url: fail_url,
+        type: 'card',
+      };
+
+      const signature = this.calculateRSA(this.stringifyData(paymentData));
+      const finalData = { ...paymentData, signature };
+      const moneyData = await firstValueFrom(
+        this.httpService
+          .post(`${gmTerminal}`, finalData, {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+          })
+          .pipe(
+            catchError((error: AxiosError) => {
+              console.error(error.response.data);
+              throw 'An error happened!';
+            }),
+          ),
+      );
+
+      console.log(moneyData.config);
+      console.log(moneyData.data);
+
+      /* const refundMoney = await this.prisma.transaction.findFirstOrThrow({
         where: {
           id,
         },
@@ -757,12 +786,12 @@ export class StoreService {
             mainBalance: user.mainBalance - refundMoney.amount,
           },
         });
-      });
+      }); */
 
       return {
         status: 'Success',
-        data: {},
-        message: `Отправлен запрос на возврат средств для ${user.steamName}`,
+        data: { ...moneyData.data },
+        //message: `Отправлен запрос на возврат средств для ${user.steamName}`,
       };
     } catch (error) {
       console.log(error);
@@ -1177,11 +1206,37 @@ export class StoreService {
     return result;
   }
 
-  calculateHMAC(data: string) {
+  private calculateHMAC(data: string) {
     return crypto
       .createHmac('sha256', MONEY_SECRET_KEY)
       .update(data)
       .digest('hex');
+  }
+
+  private calculateRSA(data: string) {
+    const hash = crypto.createHash('sha256').update(data).digest();
+    let outputRSA;
+    // Подписываем хэш с использованием приватного ключа
+    exec(
+      `echo -n '${hash.toString(
+        'hex',
+      )}' | openssl dgst -sha256 -sign ${PRIVATE_KEY_PATH} | openssl enc -base64`,
+      (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Ошибка: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          console.error(`Ошибка при выполнении команды OpenSSL: ${stderr}`);
+          return;
+        }
+
+        console.log(`Подпись: ${stdout}`);
+        outputRSA = stdout;
+      },
+    );
+
+    return outputRSA;
   }
 }
 

@@ -17,6 +17,8 @@ import { StatiscticModule } from './statisctic/statisctic.module';
 import { ContactsModule } from './contacts/contacts.module';
 import { VisitorMiddleware } from './visitor-middleware/visitor.middleware';
 import { LanguageMiddleware } from './store/middlewares/language.middleware';
+import { ScheduleModule } from '@nestjs/schedule';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { LanguageMiddleware } from './store/middlewares/language.middleware';
     NotificationModule,
     StatiscticModule,
     ContactsModule,
+    ScheduleModule.forRoot(),
+    PaymentModule,
   ],
   controllers: [],
   providers: [],
