@@ -724,8 +724,6 @@ export class StoreService {
         wallet: '2202202226924359',
         currency: 'RUB',
         description: 'Рефанд',
-        success_url: success_url,
-        fail_url: fail_url,
         type: 'card',
       };
 
