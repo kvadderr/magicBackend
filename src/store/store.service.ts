@@ -1213,9 +1213,8 @@ export class StoreService {
 
   private calculateRSA(data: string) {
     const hash = crypto.createHash('sha256').update(data).digest();
-    let outputRSA;
     // Подписываем хэш с использованием приватного ключа
-    exec(
+    return exec(
       `echo -n '${hash.toString(
         'hex',
       )}' | openssl dgst -sha256 -sign ${PRIVATE_KEY_PATH} | openssl enc -base64`,
@@ -1229,12 +1228,9 @@ export class StoreService {
           return;
         }
 
-        console.log(`Подпись: ${stdout}`);
-        outputRSA = stdout;
+        return stdout;
       },
     );
-
-    return outputRSA;
   }
 }
 
