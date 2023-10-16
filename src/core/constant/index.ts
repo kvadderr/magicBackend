@@ -6,3 +6,4 @@ export const gmTerminal = 'https://paygate.gamemoney.com/terminal/create';
 export const gmStatus = 'https://paygate.gamemoney.com/invoice/status';
 export const success_url = 'https://magicowgs.geryon.space';
 export const fail_url = 'https://magicowgs.geryon.space/profile';
+export const gmRefund = 'https://paygate.gamemoney.com/checkout/insert';

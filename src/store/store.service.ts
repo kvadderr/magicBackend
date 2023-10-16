@@ -9,7 +9,7 @@ import {
   PRIVATE_KEY_PATH,
   PROJECT_KEY,
 } from 'src/core/config';
-import { fail_url, gmTerminal, success_url } from 'src/core/constant';
+import { fail_url, gmRefund, gmTerminal, success_url } from 'src/core/constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TokenService } from 'src/token/token.service';
 import { UsersService } from 'src/users/users.service';
@@ -733,7 +733,7 @@ export class StoreService {
       const finalData = { ...paymentData, signature };
       const moneyData = await firstValueFrom(
         this.httpService
-          .post(`${gmTerminal}`, finalData, {
+          .post(`${gmRefund}`, finalData, {
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
