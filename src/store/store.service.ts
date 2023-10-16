@@ -727,7 +727,9 @@ export class StoreService {
         type: 'card',
       };
 
-      const signature = this.calculateRSA(this.stringifyData(paymentData));
+      const signature = await this.calculateRSA(
+        this.stringifyData(paymentData),
+      );
       const finalData = { ...paymentData, signature };
       const moneyData = await firstValueFrom(
         this.httpService
@@ -1212,25 +1214,28 @@ export class StoreService {
   }
 
   private calculateRSA(data: string) {
-    const hash = crypto.createHash('sha256').update(data).digest();
-    // Подписываем хэш с использованием приватного ключа
-    return exec(
-      `echo -n '${hash.toString(
-        'hex',
-      )}' | openssl dgst -sha256 -sign ${PRIVATE_KEY_PATH} | openssl enc -base64`,
-      (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Ошибка: ${error.message}`);
-          return;
-        }
-        if (stderr) {
-          console.error(`Ошибка при выполнении команды OpenSSL: ${stderr}`);
-          return;
-        }
+    return new Promise((resolve, reject) => {
+      // Создаем хэш SHA-256
+      const hash = crypto.createHash('sha256').update(data).digest();
 
-        return stdout;
-      },
-    );
+      // Подписываем хэш с использованием приватного ключа
+      exec(
+        `echo -n '${hash.toString(
+          'hex',
+        )}' | openssl dgst -sha256 -sign ${PRIVATE_KEY_PATH} | openssl enc -base64`,
+        (error, stdout, stderr) => {
+          if (error) {
+            reject(new Error(`Ошибка: ${error.message}`));
+          } else if (stderr) {
+            reject(
+              new Error(`Ошибка при выполнении команды OpenSSL: ${stderr}`),
+            );
+          } else {
+            resolve(stdout.trim()); // Убираем лишние пробелы и символы новой строки из вывода
+          }
+        },
+      );
+    });
   }
 }
 
