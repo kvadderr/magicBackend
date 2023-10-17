@@ -96,7 +96,7 @@ export class StoreController {
       const token = authorization.split(' ')[1];
 
       const data = await this.storeService.refill(Number(amount), token, lang);
-      if (data.status == 'success' && data.data.state == 'success') {
+      if (data.status == 'Success' && data.data.state == 'success') {
         res.redirect(data.data.url);
       } else {
         res.status(400).json(data);
