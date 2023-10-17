@@ -41,8 +41,7 @@ export class PaymentService {
           }),
         ),
     );
-    console.log(transactionData.data);
-    console.log('-------');
+
     const newPayments = await this.prisma.transaction.findMany({
       where: {
         status: 'IN_PROGRESS',
