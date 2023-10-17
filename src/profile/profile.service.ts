@@ -86,6 +86,9 @@ export class ProfileService {
       let transactions = await this.prisma.transaction.findMany({
         where: {
           userId: user.id,
+          status: {
+            notIn: ['DENIED', 'IN_PROGRESS', 'FALSE'],
+          },
         },
         orderBy: {
           createdAt: 'desc',
