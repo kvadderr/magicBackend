@@ -664,7 +664,7 @@ export class StoreService {
           comment: 'Пополнение баланса',
           success_url: success_url,
           fail_url: fail_url,
-          project_invoice: `test`,
+          project_invoice: `${newMoney.id}`,
           terminal_allow_methods: ['qiwi', 'card'],
         };
 
