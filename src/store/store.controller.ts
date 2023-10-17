@@ -97,7 +97,7 @@ export class StoreController {
 
       const data = await this.storeService.refill(Number(amount), token, lang);
       if (data.status == 'Success' && data.data.state == 'success') {
-        res.redirect(data.data.url);
+        res.status(200).json(data);
       } else {
         res.status(400).json(data);
       }
