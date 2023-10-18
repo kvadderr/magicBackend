@@ -17,31 +17,6 @@ export class PaymentService {
 
   @Cron(CronExpression.EVERY_5_MINUTES)
   async handleCron() {
-    const inputData = {
-      project: PROJECT_KEY,
-      project_invoice: 'test',
-    };
-    const signature = this.calculateHMAC(this.stringifyData(inputData));
-
-    const transactionData = await firstValueFrom(
-      this.httpService
-        .post(
-          `${gmStatus}`,
-          { ...inputData, signature },
-          {
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-          },
-        )
-        .pipe(
-          catchError((error: AxiosError) => {
-            console.error(error.response.data);
-            throw 'An error happened!';
-          }),
-        ),
-    );
-
     const newPayments = await this.prisma.transaction.findMany({
       where: {
         status: 'IN_PROGRESS',
@@ -54,7 +29,7 @@ export class PaymentService {
         },
       },
     });
-    /*  if (newPayments) {
+    if (newPayments) {
       let transactionData;
       await Promise.all(
         newPayments.map(async (el) => {
@@ -82,7 +57,6 @@ export class PaymentService {
                 }),
               ),
           );
-
 
           if (
             transactionData.data.state == 'success' &&
@@ -117,7 +91,7 @@ export class PaymentService {
           }
         }),
       );
-    } */
+    }
   }
 
   stringifyData(data: any, prefix = ''): string {

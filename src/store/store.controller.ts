@@ -106,7 +106,7 @@ export class StoreController {
     }
   }
 
-  @UseGuards(RolesGuard)
+  /*   @UseGuards(RolesGuard)
   @ApiOperation({ summary: 'Возврат средств' })
   @Roles('ADMINISTRATOR')
   @Post('/refund/:id')
@@ -121,7 +121,7 @@ export class StoreController {
     } catch (error) {
       throw error.message;
     }
-  }
+  } */
 
   @Get('/types')
   getTypes() {

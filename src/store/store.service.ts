@@ -628,6 +628,14 @@ export class StoreService {
 
   async refill(money: number, token: string, lang: string) {
     try {
+      const TEST_OBJECT: Packs = {
+        data: [
+          { count: 50, procent: 15 },
+          { count: 150, procent: 15 },
+          { count: 500, procent: 15 },
+          { count: 750, procent: 15 },
+        ],
+      };
       const isUser = await this.tokenService.validateAccessToken(token);
 
       const user = await this.userService.findById(isUser.id);
@@ -645,11 +653,20 @@ export class StoreService {
           );
         }
       }
+
+      let finalAmount;
+      for (let i = TEST_OBJECT.data.length - 1; i > -1; i--) {
+        if (money >= TEST_OBJECT.data[i].count) {
+          finalAmount = TEST_OBJECT.data[i];
+          break;
+        }
+      }
+
       //TODO: Переделать реализацию добавления новой транзакции для юзера, т.к есть время между самой операцией и начислением суммы. Менять статус + роут для обратного запроса для платежки
       await this.prisma.$transaction(async (tx) => {
         const newMoney = await tx.transaction.create({
           data: {
-            amount: money,
+            amount: finalAmount,
             method: 'IN PROGRESS',
             userId: user.id,
             status: 'IN_PROGRESS',
@@ -713,7 +730,7 @@ export class StoreService {
     }
   }
   //TODO: переписать возврат средств для платежки
-  async refundTransaction(id: number) {
+  /*  async refundTransaction(id: number) {
     try {
       const paymentData = {
         project: PROJECT_KEY,
@@ -749,7 +766,7 @@ export class StoreService {
       console.log(moneyData.config);
       console.log(moneyData.data);
 
-      /* const refundMoney = await this.prisma.transaction.findFirstOrThrow({
+      const refundMoney = await this.prisma.transaction.findFirstOrThrow({
         where: {
           id,
         },
@@ -786,12 +803,12 @@ export class StoreService {
             mainBalance: user.mainBalance - refundMoney.amount,
           },
         });
-      }); */
+      });
 
       return {
         status: 'Success',
         data: { ...moneyData.data },
-        //message: `Отправлен запрос на возврат средств для ${user.steamName}`,
+        message: `Отправлен запрос на возврат средств для ${user.steamName}`,
       };
     } catch (error) {
       console.log(error);
@@ -801,7 +818,7 @@ export class StoreService {
         message: error.message,
       };
     }
-  }
+  } */
 
   async buyCurrency(
     amount: number,
