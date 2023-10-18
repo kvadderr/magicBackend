@@ -84,10 +84,10 @@ export class ServersController {
     return this.serverService.getServers();
   }
 
-  @Get('/upload')
+  /* @Get('/upload')
   getServerInDB() {
     return this.serverService.getServerStat();
-  }
+  } */
 
   @Get('/ban/?')
   @ApiOperation({ summary: 'бан лист' })
