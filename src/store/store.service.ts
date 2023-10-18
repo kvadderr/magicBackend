@@ -654,10 +654,10 @@ export class StoreService {
         }
       }
 
-      let finalAmount;
+      let finalAmount: number;
       for (let i = TEST_OBJECT.data.length - 1; i > -1; i--) {
         if (money >= TEST_OBJECT.data[i].count) {
-          finalAmount = TEST_OBJECT.data[i];
+          finalAmount = money * ((100 + TEST_OBJECT.data[i].procent) / 100);
           break;
         }
       }
