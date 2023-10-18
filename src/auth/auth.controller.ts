@@ -83,9 +83,9 @@ export class AuthController {
     if (!id) {
       throw new HttpException('id is not provided', HttpStatus.BAD_REQUEST);
     }
-    /* if (signature) {
+    if (signature) {
       await this.authService.verifySignature(signature);
-    } */
+    }
 
     const data = await this.authService.signUpIn(id, {
       clientIp: req.headers['x-real-ip'].toString(),

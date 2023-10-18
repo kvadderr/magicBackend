@@ -258,7 +258,7 @@ export class AuthService {
         ),
     );
     const flag = userSteamData.data.split('\n')[1].split(':')[1];
-    if (flag == 'true') {
+    if (flag) {
       return 'success';
     } else {
       throw new HttpException('verification failed', HttpStatus.FORBIDDEN);
