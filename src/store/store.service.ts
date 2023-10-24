@@ -628,6 +628,10 @@ export class StoreService {
 
   async refill(money: number, token: string, lang: string) {
     try {
+      const progressBar: Packs = JSON.parse(
+        JSON.stringify((await this.prisma.baseSettings.findFirst()).panelURLs),
+      );
+
       const TEST_OBJECT: Packs = {
         data: [
           { count: 50, procent: 15 },
@@ -655,10 +659,10 @@ export class StoreService {
       }
 
       let finalAmount: number;
-      for (let i = TEST_OBJECT.data.length - 1; i > -1; i--) {
-        if (money >= TEST_OBJECT.data[i].count) {
+      for (let i = progressBar.data.length - 1; i > -1; i--) {
+        if (money >= progressBar.data[i].count) {
           finalAmount = Math.round(
-            money * ((100 + TEST_OBJECT.data[i].procent) / 100),
+            money * ((100 + progressBar.data[i].procent) / 100),
           );
           break;
         }
