@@ -657,7 +657,9 @@ export class StoreService {
       let finalAmount: number;
       for (let i = TEST_OBJECT.data.length - 1; i > -1; i--) {
         if (money >= TEST_OBJECT.data[i].count) {
-          finalAmount = money * ((100 + TEST_OBJECT.data[i].procent) / 100);
+          finalAmount = Math.round(
+            money * ((100 + TEST_OBJECT.data[i].procent) / 100),
+          );
           break;
         }
       }
