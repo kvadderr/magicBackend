@@ -644,15 +644,15 @@ export class StoreService {
 
       const user = await this.userService.findById(isUser.id);
       let moneyData: PaymentDataResponse;
-      if (money < 1) {
+      if (money < 25) {
         if (lang == 'ru') {
           throw new HttpException(
-            'Сумма для пополнения не может быть меньше 1',
+            'Сумма для пополнения не может быть меньше 25',
             HttpStatus.BAD_REQUEST,
           );
         } else {
           throw new HttpException(
-            'The amount to top up cannot be less than 1',
+            'The amount to top up cannot be less than 25',
             HttpStatus.BAD_REQUEST,
           );
         }
@@ -674,8 +674,12 @@ export class StoreService {
           data: {
             amount: finalAmount,
             method: 'IN PROGRESS',
-            userId: user.id,
             status: 'IN_PROGRESS',
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
           },
         });
 
