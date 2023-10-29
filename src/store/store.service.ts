@@ -665,6 +665,8 @@ export class StoreService {
             money * ((100 + progressBar.data[i].procent) / 100),
           );
           break;
+        } else {
+          finalAmount = money;
         }
       }
 
