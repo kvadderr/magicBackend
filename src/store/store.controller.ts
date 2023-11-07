@@ -82,11 +82,13 @@ export class StoreController {
     }
   }
 
-  @Post('/refill/:amount')
+  @Post('/refill/?')
   async refillMoney(
     @Headers('Authorization') authorization,
     @Headers('Language') lang,
-    @Param('amount') amount: string,
+    @Query('amount') amount: string,
+    @Query('type') type: string,
+
     @Res() res: Response,
   ) {
     try {
@@ -95,7 +97,12 @@ export class StoreController {
       }
       const token = authorization.split(' ')[1];
 
-      const data = await this.storeService.refill(Number(amount), token, lang);
+      const data = await this.storeService.refill(
+        Number(amount),
+        token,
+        lang,
+        type,
+      );
       if (data.status == 'Success' && data.data.state == 'success') {
         res.status(200).json(data);
       } else {

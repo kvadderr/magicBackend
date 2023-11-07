@@ -626,51 +626,21 @@ export class StoreService {
     }
   }
 
-  async refill(money: number, token: string, lang: string) {
+  async refill(money: number, token: string, lang: string, type: string) {
     try {
-      const progressBar: Packs = JSON.parse(
-        JSON.stringify((await this.prisma.baseSettings.findFirst()).panelURLs),
-      );
-
-      const TEST_OBJECT: Packs = {
-        data: [
-          { count: 50, procent: 15 },
-          { count: 150, procent: 15 },
-          { count: 500, procent: 15 },
-          { count: 750, procent: 15 },
-        ],
-      };
+      if (type != 'card' && type != 'qiwi') {
+        throw new HttpException(
+          'Введен некорректный тип оплаты',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       const isUser = await this.tokenService.validateAccessToken(token);
 
       const user = await this.userService.findById(isUser.id);
       let moneyData: PaymentDataResponse;
-      if (money < 25) {
-        if (lang == 'ru') {
-          throw new HttpException(
-            'Сумма для пополнения не может быть меньше 25',
-            HttpStatus.BAD_REQUEST,
-          );
-        } else {
-          throw new HttpException(
-            'The amount to top up cannot be less than 25',
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
 
-      let finalAmount: number;
-      for (let i = progressBar.data.length - 1; i > -1; i--) {
-        if (money >= progressBar.data[i].count) {
-          finalAmount = Math.round(
-            money * ((100 + progressBar.data[i].procent) / 100),
-          );
-          break;
-        } else {
-          finalAmount = money;
-        }
-      }
+      const finalAmount = await this.getPriceForRefill(money, lang, type);
 
-      //TODO: Переделать реализацию добавления новой транзакции для юзера, т.к есть время между самой операцией и начислением суммы. Менять статус + роут для обратного запроса для платежки
       await this.prisma.$transaction(async (tx) => {
         const newMoney = await tx.transaction.create({
           data: {
@@ -1053,6 +1023,46 @@ export class StoreService {
         message: error.message,
       };
     }
+  }
+
+  async getPriceForRefill(money: number, lang: string, type: string) {
+    if (money < 25) {
+      if (lang == 'ru') {
+        throw new HttpException(
+          'Сумма для пополнения не может быть меньше 25',
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        throw new HttpException(
+          'The amount to top up cannot be less than 25',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    const progressBar: Packs = JSON.parse(
+      JSON.stringify((await this.prisma.baseSettings.findFirst()).panelURLs),
+    );
+    const cardProcent = 12;
+    const qiwiProcent = 12;
+
+    let bonusForType =
+      type === 'card'
+        ? Math.round(money * (cardProcent / 100))
+        : Math.round(money * (qiwiProcent / 100));
+
+    let finalAmount: number;
+    for (let i = progressBar.data.length - 1; i > -1; i--) {
+      if (money >= progressBar.data[i].count) {
+        finalAmount =
+          money + Math.round(money * (progressBar.data[i].procent / 100));
+        break;
+      } else {
+        finalAmount = money;
+      }
+    }
+    finalAmount += bonusForType;
+    return finalAmount;
   }
 
   async getPriceForCurrency(
