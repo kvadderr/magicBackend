@@ -165,4 +165,13 @@ export class StoreController {
       Number(rubs),
     );
   }
+
+  @Get('/getPriceForRefill/?')
+  getPriceForRefill(
+    @Headers('Language') lang,
+    @Query('amount') amount: string,
+    @Query('type') type: string,
+  ) {
+    return this.storeService.getPriceForRefill(Number(amount), lang, type);
+  }
 }
