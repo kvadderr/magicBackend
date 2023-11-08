@@ -8,7 +8,7 @@ import { TokenService } from 'src/token/token.service';
 import { ResponseUserDto } from './dto/responseUser.dto';
 import { JwtPayload } from './dto/jwtPayload.dto';
 import { UserAgentDto } from './dto/userAgent.dto';
-import { SECRET_KEY } from 'src/core/config';
+import { SECRET_KEY, STEAM_API_KEY } from 'src/core/config';
 import { ParsedUrlQuery } from 'querystring';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
@@ -73,12 +73,36 @@ export class AuthService {
           user: new ResponseUserDto(user),
         };
       } else {
+        const userSteamData = await firstValueFrom(
+          this.httpService
+            .get(
+              `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${STEAM_API_KEY}&steamids=${id}`,
+            )
+            .pipe(
+              catchError((error: AxiosError) => {
+                console.error(error.response.data);
+                throw 'An error happened!';
+              }),
+            ),
+        );
+
+        const mainData = userSteamData.data.response.players[0];
+
+        const updUser = await this.prisma.user.update({
+          where: {
+            id: candidate.id,
+          },
+          data: {
+            steamName: mainData.personaname,
+            steamAvatar: mainData.avatarfull,
+          },
+        });
         const tokens = this.tokenService.generateTokens({
-          id: candidate.id,
-          steamId: candidate.steamID,
-          role: candidate.role,
-          avatar: candidate.steamAvatar,
-          name: candidate.steamName,
+          id: updUser.id,
+          steamId: updUser.steamID,
+          role: updUser.role,
+          avatar: updUser.steamAvatar,
+          name: updUser.steamName,
         });
 
         await this.tokenService.saveToken({
@@ -96,7 +120,7 @@ export class AuthService {
         return {
           accessToken: tokens.accessToken,
           refreshToken: tokens.refreshToken,
-          user: new ResponseUserDto(candidate),
+          user: new ResponseUserDto(updUser),
         };
       }
     } catch (error) {

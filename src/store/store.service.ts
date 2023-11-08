@@ -664,7 +664,7 @@ export class StoreService {
           success_url: success_url,
           fail_url: fail_url,
           project_invoice: `${newMoney.id}`,
-          terminal_allow_methods: ['qiwi', 'card'],
+          terminal_allow_methods: [type],
         };
 
         const signature = this.calculateHMAC(this.stringifyData(paymentData));
@@ -1043,13 +1043,11 @@ export class StoreService {
     const progressBar: Packs = JSON.parse(
       JSON.stringify((await this.prisma.baseSettings.findFirst()).panelURLs),
     );
-    const cardProcent = 12;
-    const qiwiProcent = 12;
 
     let bonusForType =
       type === 'card'
-        ? Math.round(money * (cardProcent / 100))
-        : Math.round(money * (qiwiProcent / 100));
+        ? Math.round(money * (progressBar.cardProcent / 100))
+        : Math.round(money * (progressBar.qiwiProcent / 100));
 
     let finalAmount: number;
     for (let i = progressBar.data.length - 1; i > -1; i--) {
@@ -1132,12 +1130,42 @@ export class StoreService {
               };
             }
           } else if (rubs) {
-            return {
-              amount: Math.round(
-                rubs / (product.price * ((100 - product.saleDiscount) / 100)),
-              ),
-              type: 'currency',
-            };
+            const packs: Packs = JSON.parse(
+              JSON.stringify(product.productContent),
+            );
+
+            let finalPrice: PackData;
+
+            for (let i = packs.data.length - 1; i > -1; i--) {
+              if (rubs >= packs.data[i].count) {
+                finalPrice = packs.data[i];
+                break;
+              }
+            }
+
+            if (finalPrice) {
+              if (finalPrice.procent > product.saleDiscount) {
+                return {
+                  finalPrice: Math.round(
+                    rubs * product.price * ((100 - finalPrice.procent) / 100),
+                  ),
+                  type: 'currency',
+                };
+              }
+              return {
+                finalPrice: Math.round(
+                  rubs * product.price * ((100 - product.saleDiscount) / 100),
+                ),
+                type: 'currency',
+              };
+            } else {
+              return {
+                finalPrice: Math.round(
+                  rubs * product.price * ((100 - product.saleDiscount) / 100),
+                ),
+                type: 'currency',
+              };
+            }
           }
           break;
         case false:
@@ -1154,12 +1182,6 @@ export class StoreService {
                 break;
               }
             }
-
-            // const finalPrice = packs.data.find((item) => {
-            //   if (item.count == amount) {
-            //     return item;
-            //   }
-            // });
 
             if (finalPrice) {
               if (finalPrice.procent > product.discount) {
@@ -1196,7 +1218,54 @@ export class StoreService {
               };
             }
           } else if (rubs) {
-            return {
+            const packs: Packs = JSON.parse(
+              JSON.stringify(product.productContent),
+            );
+
+            let finalPrice: PackData;
+
+            for (let i = packs.data.length - 1; i > -1; i--) {
+              if (amount >= packs.data[i].count) {
+                finalPrice = packs.data[i];
+                break;
+              }
+            }
+
+            if (finalPrice) {
+              if (finalPrice.procent > product.discount) {
+                return {
+                  finalPrice: Math.round(
+                    amount * product.price * ((100 - finalPrice.procent) / 100),
+                  ),
+                  type: 'currency',
+                };
+              }
+
+              return {
+                finalPrice:
+                  product.discount != 1
+                    ? Math.round(
+                        product.price *
+                          ((100 - product.discount) / 100) *
+                          amount,
+                      )
+                    : product.price * amount,
+                type: 'currency',
+              };
+            } else {
+              return {
+                finalPrice:
+                  product.discount != 1
+                    ? Math.round(
+                        product.price *
+                          ((100 - product.discount) / 100) *
+                          amount,
+                      )
+                    : product.price * amount,
+                type: 'currency',
+              };
+            }
+            /*  return {
               amount: Math.round(
                 rubs /
                   (product.price *
@@ -1205,7 +1274,7 @@ export class StoreService {
                       : product.discount)),
               ),
               type: 'currency',
-            };
+            }; */
           }
         default:
           break;
@@ -1290,6 +1359,8 @@ type InventoryData = {
 
 type Packs = {
   data: PackData[];
+  cardProcent: number;
+  qiwiProcent: number;
 };
 type PackData = {
   count: number;
