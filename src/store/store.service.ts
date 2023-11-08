@@ -693,13 +693,11 @@ export class StoreService {
         return {
           status: 'Success',
           data: { ...moneyData },
-          message: 'Баланс пополнен',
         };
       } else {
         return {
           status: 'Success',
           data: { ...moneyData },
-          message: 'The balance is replenished',
         };
       }
     } catch (error) {
