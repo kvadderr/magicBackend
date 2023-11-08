@@ -958,11 +958,29 @@ export class StoreService {
   async getBaseSettings(lang?: string) {
     const data = await this.prisma.baseSettings.findFirst();
     const languageData = JSON.parse(JSON.stringify(data.panelURLs));
+    console.log(data);
+
     switch (lang) {
       case 'ru':
-        return { ...data, panelURLs: languageData.ru };
+        return {
+          ...data,
+          panelURLs: {
+            ...languageData.ru,
+            cardProcent: languageData.cardProcent,
+            qiwiProcent: languageData.qiwiProcent,
+            data: languageData.data,
+          },
+        };
       case 'en':
-        return { ...data, panelURLs: languageData.en };
+        return {
+          ...data,
+          panelURLs: {
+            ...languageData.en,
+            cardProcent: languageData.cardProcent,
+            qiwiProcent: languageData.qiwiProcent,
+            data: languageData.data,
+          },
+        };
       default:
         return data;
     }
