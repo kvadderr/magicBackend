@@ -1345,8 +1345,11 @@ export class StoreService {
 
   async checkNotificationTransaction(token: string, lang: string) {
     const isUser = await this.tokenService.validateAccessToken(token);
+    if (isUser == null) {
+      throw new UnauthorizedException('Пользователь не авторизован');
+    }
     const user = await this.userService.findById(isUser.id);
-    const lastTransaction = await this.prisma.transaction.findFirstOrThrow({
+    const lastTransaction = await this.prisma.transaction.findFirst({
       where: {
         userId: user.id,
         status: 'IN_PROGRESS',
@@ -1356,6 +1359,9 @@ export class StoreService {
         createdAt: 'desc',
       },
     });
+    if (!lastTransaction) {
+      return;
+    }
 
     return this.paymentService.getInfo(lastTransaction, lang);
   }
