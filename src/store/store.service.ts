@@ -1,19 +1,20 @@
 import { HttpService } from '@nestjs/axios';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Server, Product, User } from '@prisma/client';
 import { AxiosError } from 'axios';
 import * as crypto from 'crypto';
-import { catchError, firstValueFrom } from 'rxjs';
-import {
-  MONEY_SECRET_KEY,
-  PRIVATE_KEY_PATH,
-  PROJECT_KEY,
-} from 'src/core/config';
-import { fail_url, gmRefund, gmTerminal, success_url } from 'src/core/constant';
+import { catchError, firstValueFrom, last } from 'rxjs';
+import { MONEY_SECRET_KEY, PROJECT_KEY } from 'src/core/config';
+import { fail_url, gmTerminal, success_url } from 'src/core/constant';
+import { PaymentService } from 'src/payment/payment.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TokenService } from 'src/token/token.service';
 import { UsersService } from 'src/users/users.service';
-import { exec } from 'child_process';
 
 @Injectable()
 export class StoreService {
@@ -22,6 +23,7 @@ export class StoreService {
     private readonly userService: UsersService,
     private readonly tokenService: TokenService,
     private readonly httpService: HttpService,
+    private readonly paymentService: PaymentService,
   ) {}
 
   async getStoreByServerType(serverTypeId: number, lang: string) {
@@ -636,6 +638,10 @@ export class StoreService {
       }
       const isUser = await this.tokenService.validateAccessToken(token);
 
+      if (isUser == null) {
+        throw new UnauthorizedException('Ошибка сессии. Обновите страницу');
+      }
+
       const user = await this.userService.findById(isUser.id);
       let moneyData: PaymentDataResponse;
 
@@ -665,6 +671,7 @@ export class StoreService {
           fail_url: fail_url,
           project_invoice: `${newMoney.id}`,
           terminal_allow_methods: [type],
+          terminal_livetime: 1200,
         };
 
         const signature = this.calculateHMAC(this.stringifyData(paymentData));
@@ -1336,29 +1343,20 @@ export class StoreService {
       .digest('hex');
   }
 
-  private calculateRSA(data: string) {
-    return new Promise((resolve, reject) => {
-      // Создаем хэш SHA-256
-      const hash = crypto.createHash('sha256').update(data).digest();
-
-      // Подписываем хэш с использованием приватного ключа
-      exec(
-        `echo -n '${hash.toString(
-          'hex',
-        )}' | openssl dgst -sha256 -sign ${PRIVATE_KEY_PATH} | openssl enc -base64`,
-        (error, stdout, stderr) => {
-          if (error) {
-            reject(new Error(`Ошибка: ${error.message}`));
-          } else if (stderr) {
-            reject(
-              new Error(`Ошибка при выполнении команды OpenSSL: ${stderr}`),
-            );
-          } else {
-            resolve(stdout.trim()); // Убираем лишние пробелы и символы новой строки из вывода
-          }
-        },
-      );
+  async checkNotificationTransaction(token: string, lang: string) {
+    const isUser = await this.tokenService.validateAccessToken(token);
+    const user = await this.userService.findById(isUser.id);
+    const lastTransaction = await this.prisma.transaction.findFirstOrThrow({
+      where: {
+        userId: user.id,
+        status: 'IN_PROGRESS',
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
+
+    return this.paymentService.getInfo(lastTransaction, lang);
   }
 }
 

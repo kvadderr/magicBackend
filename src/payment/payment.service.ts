@@ -7,6 +7,7 @@ import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import { gmStatus } from 'src/core/constant';
 import { MONEY_SECRET_KEY, PROJECT_KEY } from 'src/core/config';
+import { Transaction } from '@prisma/client';
 
 @Injectable()
 export class PaymentService {
@@ -29,7 +30,7 @@ export class PaymentService {
         },
       },
     });
-    if (newPayments) {
+    if (newPayments.length != 0) {
       let transactionData;
       await Promise.all(
         newPayments.map(async (el) => {
@@ -91,6 +92,111 @@ export class PaymentService {
           }
         }),
       );
+    }
+  }
+
+  async getInfo(order: Transaction, lang) {
+    const inputData = {
+      project: PROJECT_KEY,
+      project_invoice: order.id,
+    };
+    const signature = this.calculateHMAC(this.stringifyData(inputData));
+
+    const transactionData = await firstValueFrom(
+      this.httpService
+        .post(
+          `${gmStatus}`,
+          { ...inputData, signature },
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+          },
+        )
+        .pipe(
+          catchError((error: AxiosError) => {
+            console.error(error.response.data);
+            throw 'An error happened!';
+          }),
+        ),
+    );
+
+    if (
+      transactionData.data.state == 'success' &&
+      transactionData.data.status == 'Paid'
+    ) {
+      await this.prisma.$transaction(async (tx) => {
+        const user = await tx.user.findFirstOrThrow({
+          where: {
+            id: order.userId,
+          },
+        });
+
+        await tx.transaction.update({
+          where: {
+            id: order.id,
+          },
+          data: {
+            status: 'SUCCESS',
+            method: transactionData.data.type,
+          },
+        });
+
+        await tx.user.update({
+          where: {
+            id: order.userId,
+          },
+          data: {
+            mainBalance: user.mainBalance + order.amount,
+          },
+        });
+      });
+      if (lang == 'ru') {
+        return {
+          status: 'Success',
+          data: {},
+          message: 'Баланс успешно пополнен',
+        };
+      } else {
+        return {
+          status: 'Success',
+          data: {},
+          message: 'The balance has been successfully replenished',
+        };
+      }
+    }
+    return;
+  }
+
+  @Cron(CronExpression.EVERY_30_MINUTES)
+  async garbageCollector() {
+    const newPayments = await this.prisma.transaction.findMany({
+      where: {
+        status: 'IN_PROGRESS',
+      },
+      include: {
+        user: {
+          select: {
+            steamID: true,
+          },
+        },
+      },
+    });
+    if (newPayments.length != 0) {
+      const currentTime = new Date();
+      const garbage = newPayments.map((el) => {
+        const timeDifferenceInMinutes =
+          (currentTime.getTime() - el.createdAt.getTime()) / (1000 * 60);
+        if (timeDifferenceInMinutes > 20) return el.id;
+      });
+      await this.prisma.transaction.deleteMany({
+        where: {
+          id: {
+            in: garbage,
+          },
+        },
+      });
+      console.log(`Очистка произведена в ${new Date().toLocaleString()}`);
     }
   }
 

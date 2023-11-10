@@ -174,4 +174,30 @@ export class StoreController {
   ) {
     return this.storeService.getPriceForRefill(Number(amount), lang, type);
   }
+
+  @Get('/checkNotificationTransaction')
+  async checkNotificationTransaction(
+    @Headers('Authorization') authorization,
+    @Headers('Language') lang,
+    @Res() res: Response,
+  ) {
+    try {
+      if (!authorization) {
+        throw new Error('Insert your token');
+      }
+      const token = authorization.split(' ')[1];
+
+      const data = await this.storeService.checkNotificationTransaction(
+        token,
+        lang,
+      );
+      if (data.status == 'Success') {
+        res.status(200).json(data);
+      } else {
+        res.status(400).json(data);
+      }
+    } catch (error) {
+      throw error.message;
+    }
+  }
 }
