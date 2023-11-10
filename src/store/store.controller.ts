@@ -194,7 +194,7 @@ export class StoreController {
       if (data && data.status == 'Success') {
         res.status(200).json(data);
       } else {
-        res.status(400).json(data);
+        res.status(200).json(data);
       }
     } catch (error) {
       throw error.message;
