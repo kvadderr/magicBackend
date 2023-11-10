@@ -958,7 +958,6 @@ export class StoreService {
   async getBaseSettings(lang?: string) {
     const data = await this.prisma.baseSettings.findFirst();
     const languageData = JSON.parse(JSON.stringify(data.panelURLs));
-    console.log(data);
 
     switch (lang) {
       case 'ru':
