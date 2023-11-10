@@ -18,9 +18,18 @@ export class PaymentService {
 
   @Cron(CronExpression.EVERY_5_MINUTES)
   async handleCron() {
+    const currentDateTime: Date = new Date();
+    const dateTime30MinutesAgo: Date = new Date(
+      currentDateTime.getTime() - 30 * 60 * 1000,
+    );
+
     const newPayments = await this.prisma.transaction.findMany({
       where: {
         status: 'IN_PROGRESS',
+        createdAt: {
+          lte: currentDateTime,
+          gte: dateTime30MinutesAgo,
+        },
       },
       include: {
         user: {
@@ -137,6 +146,7 @@ export class PaymentService {
             id: order.id,
           },
           data: {
+            sendNotification: true,
             status: 'SUCCESS',
             method: transactionData.data.type,
           },
@@ -168,7 +178,7 @@ export class PaymentService {
     return;
   }
 
-  @Cron(CronExpression.EVERY_30_MINUTES)
+  /*   @Cron(CronExpression.EVERY_30_MINUTES)
   async garbageCollector() {
     const newPayments = await this.prisma.transaction.findMany({
       where: {
@@ -198,7 +208,7 @@ export class PaymentService {
       });
       console.log(`Очистка произведена в ${new Date().toLocaleString()}`);
     }
-  }
+  } */
 
   stringifyData(data: any, prefix = ''): string {
     let result = '';

@@ -1350,6 +1350,7 @@ export class StoreService {
       where: {
         userId: user.id,
         status: 'IN_PROGRESS',
+        sendNotification: false,
       },
       orderBy: {
         createdAt: 'desc',

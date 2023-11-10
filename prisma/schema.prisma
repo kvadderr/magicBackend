@@ -80,13 +80,14 @@ model User {
 }
 
 model Transaction {
-  id        Int             @id @default(autoincrement())
-  user      User?           @relation(fields: [userId], references: [id])
-  userId    Int?
-  method    String          @db.LongText
-  amount    Int
-  createdAt DateTime        @default(now())
-  status    EStatusOfRefill @default(FALSE)
+  id               Int             @id @default(autoincrement())
+  user             User?           @relation(fields: [userId], references: [id])
+  userId           Int?
+  method           String          @db.LongText
+  amount           Int
+  createdAt        DateTime        @default(now())
+  sendNotification Boolean         @default(false)
+  status           EStatusOfRefill @default(FALSE)
 }
 
 model Purchase {
