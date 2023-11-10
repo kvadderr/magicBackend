@@ -174,6 +174,20 @@ export class PaymentService {
           message: 'The balance has been successfully replenished',
         };
       }
+    } else {
+      if (lang == 'ru') {
+        return {
+          status: 'Success',
+          data: {},
+          message: 'Платеж не найден',
+        };
+      } else {
+        return {
+          status: 'Success',
+          data: {},
+          message: 'Payment not found',
+        };
+      }
     }
     return;
   }
