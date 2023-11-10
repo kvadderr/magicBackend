@@ -1251,7 +1251,7 @@ export class StoreService {
             if (finalPrice) {
               if (finalPrice.procent > product.discount) {
                 return {
-                  finalPrice: Math.round(
+                  amount: Math.round(
                     rubs / (product.price * ((100 - finalPrice.procent) / 100)),
                   ),
                   type: 'currency',
@@ -1259,7 +1259,7 @@ export class StoreService {
               }
 
               return {
-                finalPrice:
+                amount:
                   product.discount != 1
                     ? Math.round(
                         rubs /
@@ -1270,7 +1270,7 @@ export class StoreService {
               };
             } else {
               return {
-                finalPrice:
+                amount:
                   product.discount != 1
                     ? Math.round(
                         rubs /
