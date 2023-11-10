@@ -191,7 +191,7 @@ export class StoreController {
         token,
         lang,
       );
-      if (data.status == 'Success') {
+      if (data && data.status == 'Success') {
         res.status(200).json(data);
       } else {
         res.status(400).json(data);
