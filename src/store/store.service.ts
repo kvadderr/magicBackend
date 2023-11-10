@@ -1240,17 +1240,19 @@ export class StoreService {
             let finalPrice: PackData;
 
             for (let i = packs.data.length - 1; i > -1; i--) {
-              if (amount >= packs.data[i].count) {
+              if (rubs >= packs.data[i].count) {
                 finalPrice = packs.data[i];
                 break;
               }
             }
 
+            console.log(finalPrice);
+
             if (finalPrice) {
               if (finalPrice.procent > product.discount) {
                 return {
                   finalPrice: Math.round(
-                    amount * product.price * ((100 - finalPrice.procent) / 100),
+                    rubs / (product.price * ((100 - finalPrice.procent) / 100)),
                   ),
                   type: 'currency',
                 };
@@ -1260,11 +1262,10 @@ export class StoreService {
                 finalPrice:
                   product.discount != 1
                     ? Math.round(
-                        product.price *
-                          ((100 - product.discount) / 100) *
-                          amount,
+                        rubs /
+                          (product.price * ((100 - product.discount) / 100)),
                       )
-                    : product.price * amount,
+                    : product.price * rubs,
                 type: 'currency',
               };
             } else {
@@ -1272,11 +1273,10 @@ export class StoreService {
                 finalPrice:
                   product.discount != 1
                     ? Math.round(
-                        product.price *
-                          ((100 - product.discount) / 100) *
-                          amount,
+                        rubs /
+                          (product.price * ((100 - product.discount) / 100)),
                       )
-                    : product.price * amount,
+                    : product.price * rubs,
                 type: 'currency',
               };
             }
