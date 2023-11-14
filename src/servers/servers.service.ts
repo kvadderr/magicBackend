@@ -224,19 +224,33 @@ export class ServersService {
     ).data;
 
     if (searchValue) {
-      const lowercaseSearchValue = searchValue.toLowerCase();
+      if (Number.isNaN(Number(searchValue))) {
+        const banResult = banlist.filter(
+          (item) =>
+            item.nickname.toLowerCase().includes(searchValue) ||
+            item.steamid.includes(searchValue),
+        );
 
-      const banResult = banlist.filter(
-        (item) =>
-          item.nickname.toLowerCase().includes(lowercaseSearchValue) ||
-          item.steamid.includes(searchValue),
-      );
+        return {
+          banlist: banResult.slice((page - 1) * count, page * count),
+          pages:
+            banResult.length > count ? Math.ceil(banResult.length / count) : 1,
+        };
+      } else {
+        const lowercaseSearchValue = searchValue.toLowerCase();
 
-      return {
-        banlist: banResult.slice((page - 1) * count, page * count),
-        pages:
-          banResult.length > count ? Math.ceil(banResult.length / count) : 1,
-      };
+        const banResult = banlist.filter(
+          (item) =>
+            item.nickname.toLowerCase().includes(lowercaseSearchValue) ||
+            item.steamid.includes(searchValue),
+        );
+
+        return {
+          banlist: banResult.slice((page - 1) * count, page * count),
+          pages:
+            banResult.length > count ? Math.ceil(banResult.length / count) : 1,
+        };
+      }
     }
     return {
       banlist: banlist.slice((page - 1) * count, page * count),
