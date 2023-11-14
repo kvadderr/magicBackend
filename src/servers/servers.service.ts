@@ -224,19 +224,7 @@ export class ServersService {
     ).data;
 
     if (searchValue) {
-      if (Number.isNaN(Number(searchValue))) {
-        const banResult = banlist.filter(
-          (item) =>
-            item.nickname.toLowerCase().includes(searchValue) ||
-            item.steamid.includes(searchValue),
-        );
-
-        return {
-          banlist: banResult.slice((page - 1) * count, page * count),
-          pages:
-            banResult.length > count ? Math.ceil(banResult.length / count) : 1,
-        };
-      } else {
+      if (Number(searchValue)) {
         const lowercaseSearchValue = searchValue.toLowerCase();
 
         const banResult = banlist.filter(
@@ -251,6 +239,17 @@ export class ServersService {
             banResult.length > count ? Math.ceil(banResult.length / count) : 1,
         };
       }
+      const banResult = banlist.filter(
+        (item) =>
+          item.nickname.toLowerCase().includes(searchValue) ||
+          item.steamid.includes(searchValue),
+      );
+
+      return {
+        banlist: banResult.slice((page - 1) * count, page * count),
+        pages:
+          banResult.length > count ? Math.ceil(banResult.length / count) : 1,
+      };
     }
     return {
       banlist: banlist.slice((page - 1) * count, page * count),
