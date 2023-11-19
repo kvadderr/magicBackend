@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Query,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -88,7 +89,7 @@ export class StoreController {
     @Headers('Language') lang,
     @Query('amount') amount: string,
     @Query('type') type: string,
-
+    @Req() req: Request,
     @Res() res: Response,
   ) {
     try {
@@ -102,6 +103,7 @@ export class StoreController {
         token,
         lang,
         type,
+        req.headers['x-real-ip'].toString(),
       );
       if (data.status == 'Success' && data.data.state == 'success') {
         res.status(200).json(data);

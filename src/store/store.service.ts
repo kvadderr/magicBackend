@@ -628,7 +628,13 @@ export class StoreService {
     }
   }
 
-  async refill(money: number, token: string, lang: string, type: string) {
+  async refill(
+    money: number,
+    token: string,
+    lang: string,
+    type: string,
+    ip: string,
+  ) {
     try {
       if (type != 'card' && type != 'qiwi') {
         throw new HttpException(
@@ -662,6 +668,7 @@ export class StoreService {
         });
 
         const paymentData = {
+          ip,
           amount: money,
           project: PROJECT_KEY,
           user: user.steamID,
@@ -670,7 +677,8 @@ export class StoreService {
           success_url: success_url,
           fail_url: fail_url,
           project_invoice: `${newMoney.id}`,
-          terminal_allow_methods: [type],
+          type,
+          return_mode: 'skip',
           terminal_livetime: 1200,
         };
 
