@@ -89,7 +89,9 @@ export class StoreController {
     @Headers('Language') lang,
     @Query('amount') amount: string,
     @Query('type') type: string,
-    @Req() req: Request,
+    @Query('country') country: string,
+    @Req()
+    req: Request,
     @Res() res: Response,
   ) {
     try {
@@ -104,6 +106,7 @@ export class StoreController {
         lang,
         type,
         req.headers['x-real-ip'].toString(),
+        country,
       );
       if (data.status == 'Success' && data.data.state == 'success') {
         res.status(200).json(data);
@@ -155,14 +158,9 @@ export class StoreController {
     @Query('id') productId: string,
     @Query('amount') amount: string,
     @Query('rubs') rubs: string,
-    @Query('isPack') isPack: string,
   ) {
-    let flag = false;
-    isPack == 'false' ? (flag = false) : (flag = true);
-
     return this.storeService.getPriceForCurrency(
       Number(productId),
-      flag,
       Number(amount),
       Number(rubs),
     );

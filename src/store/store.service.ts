@@ -10,7 +10,12 @@ import { AxiosError } from 'axios';
 import * as crypto from 'crypto';
 import { catchError, firstValueFrom, last } from 'rxjs';
 import { MONEY_SECRET_KEY, PROJECT_KEY } from 'src/core/config';
-import { fail_url, gmTerminal, success_url } from 'src/core/constant';
+import {
+  fail_url,
+  gmApiTerminal,
+  gmTerminal,
+  success_url,
+} from 'src/core/constant';
 import { PaymentService } from 'src/payment/payment.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TokenService } from 'src/token/token.service';
@@ -219,7 +224,6 @@ export class StoreService {
           user,
           lang,
           product.serverTypeId,
-          isPack,
         );
       }
 
@@ -634,9 +638,13 @@ export class StoreService {
     lang: string,
     type: string,
     ip: string,
+    country: string,
   ) {
     try {
-      if (type != 'card' && type != 'qiwi') {
+      if (
+        (type != 'card' && type != 'qiwi') ||
+        (country != 'RUB' && country != 'KZT')
+      ) {
         throw new HttpException(
           'Введен некорректный тип оплаты',
           HttpStatus.BAD_REQUEST,
@@ -667,42 +675,81 @@ export class StoreService {
           },
         });
 
-        const paymentData = {
-          ip,
-          amount: money,
-          project: PROJECT_KEY,
-          user: user.steamID,
-          currency: 'RUB',
-          comment: 'Пополнение баланса',
-          success_url: success_url,
-          fail_url: fail_url,
-          project_invoice: `${newMoney.id}`,
-          type,
-          return_mode: 'skip',
-          terminal_livetime: 1200,
-        };
+        if (type == 'card') {
+          const paymentData = {
+            ip,
+            amount: money,
+            project: PROJECT_KEY,
+            user: user.steamID,
+            user_currency: country,
+            comment: 'Пополнение баланса',
+            success_url: success_url,
+            fail_url: fail_url,
+            project_invoice: `${newMoney.id}`,
+            type,
+            return_mode: 'skip',
+            terminal_livetime: 1200,
+          };
+          console.log(paymentData);
 
-        const signature = this.calculateHMAC(this.stringifyData(paymentData));
+          const signature = this.calculateHMAC(this.stringifyData(paymentData));
 
-        const finalData = { ...paymentData, signature };
+          const finalData = { ...paymentData, signature };
 
-        moneyData = await (
-          await firstValueFrom(
-            this.httpService
-              .post(`${gmTerminal}`, finalData, {
-                headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
-                },
-              })
-              .pipe(
-                catchError((error: AxiosError) => {
-                  console.error(error.response.data);
-                  throw 'An error happened!';
-                }),
-              ),
-          )
-        ).data;
+          moneyData = await (
+            await firstValueFrom(
+              this.httpService
+                .post(`${gmApiTerminal}`, finalData, {
+                  headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                  },
+                })
+                .pipe(
+                  catchError((error: AxiosError) => {
+                    console.error(error.response.data);
+                    throw 'An error happened!';
+                  }),
+                ),
+            )
+          ).data;
+        } else {
+          const paymentData = {
+            ip,
+            amount: money,
+            project: PROJECT_KEY,
+            user: user.steamID,
+            user_currency: country,
+            comment: 'Пополнение баланса',
+            success_url: success_url,
+            fail_url: fail_url,
+            project_invoice: `${newMoney.id}`,
+            return_mode: 'skip',
+            terminal_livetime: 1200,
+            terminal_allow_methods: [type],
+          };
+          const signature = this.calculateHMAC(this.stringifyData(paymentData));
+
+          const finalData = { ...paymentData, signature };
+
+          moneyData = await (
+            await firstValueFrom(
+              this.httpService
+                .post(`${gmTerminal}`, finalData, {
+                  headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                  },
+                })
+                .pipe(
+                  catchError((error: AxiosError) => {
+                    console.error(error.response.data);
+                    throw 'An error happened!';
+                  }),
+                ),
+            )
+          ).data;
+        }
       });
+      console.log(moneyData);
 
       if (lang == 'ru') {
         return {
@@ -821,14 +868,9 @@ export class StoreService {
     user: User,
     lang: string,
     serverTypeID: number,
-    isPack: boolean,
   ) {
     try {
-      const currectPrice = await this.getPriceForCurrency(
-        currency.id,
-        isPack,
-        amount,
-      );
+      const currectPrice = await this.getPriceForCurrency(currency.id, amount);
 
       await this.prisma.$transaction(async (tx) => {
         if (user.mainBalance + user.bonusBalance < currectPrice.finalPrice) {
@@ -1093,12 +1135,7 @@ export class StoreService {
     return finalAmount;
   }
 
-  async getPriceForCurrency(
-    productId: number,
-    isPack?: boolean,
-    amount?: number,
-    rubs?: number,
-  ) {
+  async getPriceForCurrency(productId: number, amount?: number, rubs?: number) {
     try {
       if (rubs && amount) {
         throw new HttpException(
@@ -1111,6 +1148,13 @@ export class StoreService {
           id: productId,
         },
       });
+
+      if (product.type != 'CURRENCY') {
+        throw new HttpException(
+          'Указан некорректный предмет',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
 
       const settings = await this.getBaseSettings();
 
@@ -1140,21 +1184,27 @@ export class StoreService {
               if (finalPrice.procent > product.saleDiscount) {
                 return {
                   finalPrice: Math.round(
-                    amount * product.price * ((100 - finalPrice.procent) / 100),
+                    amount *
+                      (product.price / product.amount) *
+                      ((100 - finalPrice.procent) / 100),
                   ),
                   type: 'money',
                 };
               }
               return {
                 finalPrice: Math.round(
-                  amount * product.price * ((100 - product.saleDiscount) / 100),
+                  amount *
+                    (product.price / product.amount) *
+                    ((100 - product.saleDiscount) / 100),
                 ),
                 type: 'money',
               };
             } else {
               return {
                 finalPrice: Math.round(
-                  amount * product.price * ((100 - product.saleDiscount) / 100),
+                  amount *
+                    (product.price / product.amount) *
+                    ((100 - product.saleDiscount) / 100),
                 ),
                 type: 'money',
               };
@@ -1167,7 +1217,7 @@ export class StoreService {
             let finalPrice: PackData;
 
             for (let i = packs.data.length - 1; i > -1; i--) {
-              if (rubs >= packs.data[i].count) {
+              if (rubs * product.amount >= packs.data[i].count) {
                 finalPrice = packs.data[i];
                 break;
               }
@@ -1176,23 +1226,26 @@ export class StoreService {
             if (finalPrice) {
               if (finalPrice.procent > product.saleDiscount) {
                 return {
-                  finalPrice: Math.round(
-                    rubs * product.price * ((100 - finalPrice.procent) / 100),
-                  ),
+                  finalPrice:
+                    Math.round(
+                      rubs * product.price * ((100 - finalPrice.procent) / 100),
+                    ) * product.amount,
                   type: 'currency',
                 };
               }
               return {
-                finalPrice: Math.round(
-                  rubs * product.price * ((100 - product.saleDiscount) / 100),
-                ),
+                finalPrice:
+                  Math.round(
+                    rubs * product.price * ((100 - product.saleDiscount) / 100),
+                  ) * product.amount,
                 type: 'currency',
               };
             } else {
               return {
-                finalPrice: Math.round(
-                  rubs * product.price * ((100 - product.saleDiscount) / 100),
-                ),
+                finalPrice:
+                  Math.round(
+                    rubs * product.price * ((100 - product.saleDiscount) / 100),
+                  ) * product.amount,
                 type: 'currency',
               };
             }
@@ -1217,7 +1270,9 @@ export class StoreService {
               if (finalPrice.procent > product.discount) {
                 return {
                   finalPrice: Math.round(
-                    amount * product.price * ((100 - finalPrice.procent) / 100),
+                    amount *
+                      (product.price / product.amount) *
+                      ((100 - finalPrice.procent) / 100),
                   ),
                   type: 'money',
                 };
@@ -1227,7 +1282,7 @@ export class StoreService {
                 finalPrice:
                   product.discount != 1
                     ? Math.round(
-                        product.price *
+                        (product.price / product.amount) *
                           ((100 - product.discount) / 100) *
                           amount,
                       )
@@ -1239,11 +1294,11 @@ export class StoreService {
                 finalPrice:
                   product.discount != 1
                     ? Math.round(
-                        product.price *
+                        (product.price / product.amount) *
                           ((100 - product.discount) / 100) *
                           amount,
                       )
-                    : product.price * amount,
+                    : (product.price / product.amount) * amount,
                 type: 'money',
               };
             }
@@ -1255,20 +1310,21 @@ export class StoreService {
             let finalPrice: PackData;
 
             for (let i = packs.data.length - 1; i > -1; i--) {
-              if (rubs >= packs.data[i].count) {
+              if (rubs * product.amount >= packs.data[i].count) {
                 finalPrice = packs.data[i];
                 break;
               }
             }
 
-            console.log(finalPrice);
-
             if (finalPrice) {
               if (finalPrice.procent > product.discount) {
                 return {
-                  amount: Math.round(
-                    rubs / (product.price * ((100 - finalPrice.procent) / 100)),
-                  ),
+                  amount:
+                    Math.round(
+                      rubs /
+                        (product.price * ((100 - finalPrice.procent) / 100)),
+                    ) * product.amount,
+
                   type: 'currency',
                 };
               }
@@ -1279,7 +1335,7 @@ export class StoreService {
                     ? Math.round(
                         rubs /
                           (product.price * ((100 - product.discount) / 100)),
-                      )
+                      ) * product.amount
                     : product.price * rubs,
                 type: 'currency',
               };
@@ -1290,7 +1346,7 @@ export class StoreService {
                     ? Math.round(
                         rubs /
                           (product.price * ((100 - product.discount) / 100)),
-                      )
+                      ) * product.amount
                     : product.price * rubs,
                 type: 'currency',
               };
