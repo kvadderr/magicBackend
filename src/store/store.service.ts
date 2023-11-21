@@ -756,7 +756,7 @@ export class StoreService {
           status: 'Success',
           data: {
             time: moneyData.time,
-            url: moneyData.data,
+            url: moneyData.data ? moneyData.data : moneyData.url,
             invoice: moneyData.invoice,
             signature: moneyData.signature,
           },
@@ -767,7 +767,7 @@ export class StoreService {
           data: {
             state: moneyData.state,
             time: moneyData.time,
-            url: moneyData.data,
+            url: moneyData.data ? moneyData.data : moneyData.url,
             invoice: moneyData.invoice,
             signature: moneyData.signature,
           },
