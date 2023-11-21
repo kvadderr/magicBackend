@@ -755,22 +755,22 @@ export class StoreService {
         return {
           status: 'Success',
           data: {
-            state: moneyData.state,
-            time: moneyData.time,
+            state: `success`,
+            time: `moneyData.time`,
             url: `http://localhost:3001/store?payment=error`,
-            invoice: moneyData.invoice,
-            signature: moneyData.signature,
+            invoice: `moneyData.invoice`,
+            signature: `moneyData.signature`,
           },
         };
       } else {
         return {
           status: 'Success',
           data: {
-            state: moneyData.state,
-            time: moneyData.time,
+            state: `success`,
+            time: `moneyData.time`,
             url: `http://localhost:3001/store?payment=error`,
-            invoice: moneyData.invoice,
-            signature: moneyData.signature,
+            invoice: `moneyData.invoice`,
+            signature: `moneyData.signature`,
           },
         };
       }
