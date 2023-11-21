@@ -731,7 +731,7 @@ export class StoreService {
 
           const finalData = { ...paymentData, signature };
 
-          moneyData = await (
+          /* moneyData = await (
             await firstValueFrom(
               this.httpService
                 .post(`${gmTerminal}`, finalData, {
@@ -746,7 +746,7 @@ export class StoreService {
                   }),
                 ),
             )
-          ).data;
+          ).data; */
         }
       });
       console.log(moneyData);
@@ -757,7 +757,7 @@ export class StoreService {
           data: {
             state: moneyData.state,
             time: moneyData.time,
-            url: moneyData.data ? moneyData.data : moneyData.url,
+            url: `http://localhost:3001/store?payment=success`,
             invoice: moneyData.invoice,
             signature: moneyData.signature,
           },
