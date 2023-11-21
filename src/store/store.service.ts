@@ -757,7 +757,7 @@ export class StoreService {
           data: {
             state: `error`,
             time: `moneyData.time`,
-            url: `http://localhost:3001/store?payment=error`,
+            url: `http://localhost:3001/store?payment=success`,
             invoice: `moneyData.invoice`,
             signature: `moneyData.signature`,
           },
@@ -768,7 +768,7 @@ export class StoreService {
           data: {
             state: `error`,
             time: `moneyData.time`,
-            url: `http://localhost:3001/store?payment=error`,
+            url: `http://localhost:3001/store?payment=success`,
             invoice: `moneyData.invoice`,
             signature: `moneyData.signature`,
           },
