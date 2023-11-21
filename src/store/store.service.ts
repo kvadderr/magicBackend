@@ -696,7 +696,7 @@ export class StoreService {
 
           const finalData = { ...paymentData, signature };
 
-          moneyData = await (
+          /*  moneyData = await (
             await firstValueFrom(
               this.httpService
                 .post(`${gmApiTerminal}`, finalData, {
@@ -711,7 +711,7 @@ export class StoreService {
                   }),
                 ),
             )
-          ).data;
+          ).data; */
         } else {
           const paymentData = {
             ip,
