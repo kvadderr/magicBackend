@@ -49,7 +49,34 @@ export class PaymentService {
           };
           const signature = this.calculateHMAC(this.stringifyData(inputData));
 
-          transactionData = await firstValueFrom(
+          await this.prisma.$transaction(async (tx) => {
+            const user = await tx.user.findFirstOrThrow({
+              where: {
+                id: el.userId,
+              },
+            });
+
+            await tx.transaction.update({
+              where: {
+                id: el.id,
+              },
+              data: {
+                status: 'SUCCESS',
+                method: transactionData.data.type,
+              },
+            });
+
+            await tx.user.update({
+              where: {
+                id: el.userId,
+              },
+              data: {
+                mainBalance: user.mainBalance + el.amount,
+              },
+            });
+          });
+
+          /*  transactionData = await firstValueFrom(
             this.httpService
               .post(
                 `${gmStatus}`,
@@ -72,33 +99,8 @@ export class PaymentService {
             transactionData.data.state == 'success' &&
             transactionData.data.status == 'Paid'
           ) {
-            await this.prisma.$transaction(async (tx) => {
-              const user = await tx.user.findFirstOrThrow({
-                where: {
-                  id: el.userId,
-                },
-              });
-
-              await tx.transaction.update({
-                where: {
-                  id: el.id,
-                },
-                data: {
-                  status: 'SUCCESS',
-                  method: transactionData.data.type,
-                },
-              });
-
-              await tx.user.update({
-                where: {
-                  id: el.userId,
-                },
-                data: {
-                  mainBalance: user.mainBalance + el.amount,
-                },
-              });
-            });
-          }
+            
+          } */
         }),
       );
     }
