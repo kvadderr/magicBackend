@@ -755,7 +755,7 @@ export class StoreService {
         return {
           status: 'Success',
           data: {
-            state: `success`,
+            state: `error`,
             time: `moneyData.time`,
             url: `http://localhost:3001/store?payment=error`,
             invoice: `moneyData.invoice`,
@@ -766,7 +766,7 @@ export class StoreService {
         return {
           status: 'Success',
           data: {
-            state: `success`,
+            state: `error`,
             time: `moneyData.time`,
             url: `http://localhost:3001/store?payment=error`,
             invoice: `moneyData.invoice`,
@@ -1421,6 +1421,8 @@ export class StoreService {
   }
 
   async checkNotificationTransaction(token: string, lang: string) {
+    console.log(`CHECK NOTIFICATION`);
+
     const isUser = await this.tokenService.validateAccessToken(token);
     if (isUser == null) {
       throw new UnauthorizedException('Пользователь не авторизован');
