@@ -49,34 +49,7 @@ export class PaymentService {
           };
           const signature = this.calculateHMAC(this.stringifyData(inputData));
 
-          await this.prisma.$transaction(async (tx) => {
-            const user = await tx.user.findFirstOrThrow({
-              where: {
-                id: el.userId,
-              },
-            });
-
-            await tx.transaction.update({
-              where: {
-                id: el.id,
-              },
-              data: {
-                status: 'SUCCESS',
-                method: transactionData.data.type,
-              },
-            });
-
-            await tx.user.update({
-              where: {
-                id: el.userId,
-              },
-              data: {
-                mainBalance: user.mainBalance + el.amount,
-              },
-            });
-          });
-
-          /*  transactionData = await firstValueFrom(
+          transactionData = await firstValueFrom(
             this.httpService
               .post(
                 `${gmStatus}`,
@@ -99,8 +72,33 @@ export class PaymentService {
             transactionData.data.state == 'success' &&
             transactionData.data.status == 'Paid'
           ) {
-            
-          } */
+            await this.prisma.$transaction(async (tx) => {
+              const user = await tx.user.findFirstOrThrow({
+                where: {
+                  id: el.userId,
+                },
+              });
+
+              await tx.transaction.update({
+                where: {
+                  id: el.id,
+                },
+                data: {
+                  status: 'SUCCESS',
+                  method: transactionData.data.type,
+                },
+              });
+
+              await tx.user.update({
+                where: {
+                  id: el.userId,
+                },
+                data: {
+                  mainBalance: user.mainBalance + el.amount,
+                },
+              });
+            });
+          }
         }),
       );
     }
@@ -131,51 +129,51 @@ export class PaymentService {
           }),
         ),
     );
+    await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findFirstOrThrow({
+        where: {
+          id: order.userId,
+        },
+      });
+
+      await tx.transaction.update({
+        where: {
+          id: order.id,
+        },
+        data: {
+          sendNotification: true,
+          status: 'SUCCESS',
+          method: transactionData.data.type,
+        },
+      });
+
+      await tx.user.update({
+        where: {
+          id: order.userId,
+        },
+        data: {
+          mainBalance: user.mainBalance + order.amount,
+        },
+      });
+    });
+    if (lang == 'ru') {
+      return {
+        status: 'Success',
+        data: {},
+        message: 'Баланс успешно пополнен',
+      };
+    } else {
+      return {
+        status: 'Success',
+        data: {},
+        message: 'The balance has been successfully replenished',
+      };
+    }
 
     if (
       transactionData.data.state == 'success' &&
       transactionData.data.status == 'Paid'
     ) {
-      await this.prisma.$transaction(async (tx) => {
-        const user = await tx.user.findFirstOrThrow({
-          where: {
-            id: order.userId,
-          },
-        });
-
-        await tx.transaction.update({
-          where: {
-            id: order.id,
-          },
-          data: {
-            sendNotification: true,
-            status: 'SUCCESS',
-            method: transactionData.data.type,
-          },
-        });
-
-        await tx.user.update({
-          where: {
-            id: order.userId,
-          },
-          data: {
-            mainBalance: user.mainBalance + order.amount,
-          },
-        });
-      });
-      if (lang == 'ru') {
-        return {
-          status: 'Success',
-          data: {},
-          message: 'Баланс успешно пополнен',
-        };
-      } else {
-        return {
-          status: 'Success',
-          data: {},
-          message: 'The balance has been successfully replenished',
-        };
-      }
     } else {
       if (lang == 'ru') {
         return {
