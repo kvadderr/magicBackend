@@ -755,7 +755,7 @@ export class StoreService {
         return {
           status: 'Success',
           data: {
-            state: `error`,
+            state: `success`,
             time: `moneyData.time`,
             url: `http://localhost:3001/store?payment=success`,
             invoice: `moneyData.invoice`,
@@ -766,7 +766,7 @@ export class StoreService {
         return {
           status: 'Success',
           data: {
-            state: `error`,
+            state: `success`,
             time: `moneyData.time`,
             url: `http://localhost:3001/store?payment=success`,
             invoice: `moneyData.invoice`,
