@@ -657,7 +657,7 @@ export class StoreService {
       }
 
       const user = await this.userService.findById(isUser.id);
-      let moneyData: PaymentDataResponse;
+      let moneyData;
 
       const finalAmount = await this.getPriceForRefill(money, lang, type);
 
@@ -754,12 +754,22 @@ export class StoreService {
       if (lang == 'ru') {
         return {
           status: 'Success',
-          data: { ...moneyData },
+          data: {
+            time: moneyData.time,
+            url: moneyData.data,
+            invoice: moneyData.invoice,
+            signature: moneyData.signature,
+          },
         };
       } else {
         return {
           status: 'Success',
-          data: { ...moneyData },
+          data: {
+            time: moneyData.time,
+            url: moneyData.data,
+            invoice: moneyData.invoice,
+            signature: moneyData.signature,
+          },
         };
       }
     } catch (error) {
