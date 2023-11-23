@@ -224,13 +224,15 @@ export class ServersService {
     ).data;
 
     if (searchValue) {
-      const lowercaseSearchValue = searchValue.toLowerCase();
+      const lowercaseSearchValue = searchValue.toLocaleLowerCase();
+
       const banResult = banlist.filter((item) => {
         if (item.nickname == null) {
           return item.steamid.includes(searchValue);
         } else {
+          const userInLower = item.nickname.toLocaleLowerCase();
           return (
-            item.nickname.includes(lowercaseSearchValue) ||
+            userInLower.includes(lowercaseSearchValue) ||
             item.steamid.includes(searchValue)
           );
         }
