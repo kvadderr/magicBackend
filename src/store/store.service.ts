@@ -1239,7 +1239,8 @@ export class StoreService {
                 return {
                   finalPrice:
                     Math.round(
-                      rubs * product.price * ((100 - finalPrice.procent) / 100),
+                      rubs /
+                        (product.price * ((100 - finalPrice.procent) / 100)),
                     ) * product.amount,
                   type: 'currency',
                 };
@@ -1247,7 +1248,8 @@ export class StoreService {
               return {
                 finalPrice:
                   Math.round(
-                    rubs * product.price * ((100 - product.saleDiscount) / 100),
+                    rubs /
+                      (product.price * ((100 - product.saleDiscount) / 100)),
                   ) * product.amount,
                 type: 'currency',
               };
@@ -1255,7 +1257,8 @@ export class StoreService {
               return {
                 finalPrice:
                   Math.round(
-                    rubs * product.price * ((100 - product.saleDiscount) / 100),
+                    rubs /
+                      (product.price * ((100 - product.saleDiscount) / 100)),
                   ) * product.amount,
                 type: 'currency',
               };
