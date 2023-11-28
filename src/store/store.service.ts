@@ -755,11 +755,12 @@ export class StoreService {
         return {
           status: 'Success',
           data: {
-            state: `success`,
-            time: `moneyData.time`,
-            url: `http://localhost:3001/store?payment=success`,
-            invoice: `moneyData.invoice`,
-            signature: `moneyData.signature`,
+
+            state: moneyData.state,
+            time: moneyData.time,
+            url: moneyData.data ? moneyData.data : moneyData.url,
+            invoice: moneyData.invoice,
+            signature: moneyData.signature,
           },
         };
       } else {
@@ -1241,7 +1242,8 @@ export class StoreService {
                 return {
                   finalPrice:
                     Math.round(
-                      rubs * product.price * ((100 - finalPrice.procent) / 100),
+                      rubs /
+                        (product.price * ((100 - finalPrice.procent) / 100)),
                     ) * product.amount,
                   type: 'currency',
                 };
@@ -1249,7 +1251,8 @@ export class StoreService {
               return {
                 finalPrice:
                   Math.round(
-                    rubs * product.price * ((100 - product.saleDiscount) / 100),
+                    rubs /
+                      (product.price * ((100 - product.saleDiscount) / 100)),
                   ) * product.amount,
                 type: 'currency',
               };
@@ -1257,7 +1260,8 @@ export class StoreService {
               return {
                 finalPrice:
                   Math.round(
-                    rubs * product.price * ((100 - product.saleDiscount) / 100),
+                    rubs /
+                      (product.price * ((100 - product.saleDiscount) / 100)),
                   ) * product.amount,
                 type: 'currency',
               };
