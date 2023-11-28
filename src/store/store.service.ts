@@ -696,7 +696,7 @@ export class StoreService {
 
           const finalData = { ...paymentData, signature };
 
-          moneyData = await (
+          /*  moneyData = await (
             await firstValueFrom(
               this.httpService
                 .post(`${gmApiTerminal}`, finalData, {
@@ -711,7 +711,7 @@ export class StoreService {
                   }),
                 ),
             )
-          ).data;
+          ).data; */
         } else {
           const paymentData = {
             ip,
@@ -731,7 +731,7 @@ export class StoreService {
 
           const finalData = { ...paymentData, signature };
 
-          moneyData = await (
+          /* moneyData = await (
             await firstValueFrom(
               this.httpService
                 .post(`${gmTerminal}`, finalData, {
@@ -746,7 +746,7 @@ export class StoreService {
                   }),
                 ),
             )
-          ).data;
+          ).data; */
         }
       });
       console.log(moneyData);
@@ -755,6 +755,7 @@ export class StoreService {
         return {
           status: 'Success',
           data: {
+
             state: moneyData.state,
             time: moneyData.time,
             url: moneyData.data ? moneyData.data : moneyData.url,
@@ -766,11 +767,11 @@ export class StoreService {
         return {
           status: 'Success',
           data: {
-            state: moneyData.state,
-            time: moneyData.time,
-            url: moneyData.data ? moneyData.data : moneyData.url,
-            invoice: moneyData.invoice,
-            signature: moneyData.signature,
+            state: `success`,
+            time: `moneyData.time`,
+            url: `http://localhost:3001/store?payment=success`,
+            invoice: `moneyData.invoice`,
+            signature: `moneyData.signature`,
           },
         };
       }
@@ -780,6 +781,7 @@ export class StoreService {
       return {
         status: 'Error',
         message: error.message,
+        url: `http://localhost:3001/store?payment=error`,
       };
     }
   }
@@ -1423,6 +1425,8 @@ export class StoreService {
   }
 
   async checkNotificationTransaction(token: string, lang: string) {
+    console.log(`CHECK NOTIFICATION`);
+
     const isUser = await this.tokenService.validateAccessToken(token);
     if (isUser == null) {
       throw new UnauthorizedException('Пользователь не авторизован');
