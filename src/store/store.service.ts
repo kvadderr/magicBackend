@@ -755,6 +755,7 @@ export class StoreService {
         return {
           status: 'Success',
           data: {
+            state: moneyData.state,
             time: moneyData.time,
             url: moneyData.data ? moneyData.data : moneyData.url,
             invoice: moneyData.invoice,
