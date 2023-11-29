@@ -755,7 +755,6 @@ export class StoreService {
         return {
           status: 'Success',
           data: {
-
             state: moneyData.state,
             time: moneyData.time,
             url: moneyData.data ? moneyData.data : moneyData.url,
@@ -1240,7 +1239,7 @@ export class StoreService {
             if (finalPrice) {
               if (finalPrice.procent > product.saleDiscount) {
                 return {
-                  finalPrice:
+                  amount:
                     Math.round(
                       rubs /
                         (product.price * ((100 - finalPrice.procent) / 100)),
@@ -1249,7 +1248,7 @@ export class StoreService {
                 };
               }
               return {
-                finalPrice:
+                amount:
                   Math.round(
                     rubs /
                       (product.price * ((100 - product.saleDiscount) / 100)),
@@ -1258,7 +1257,7 @@ export class StoreService {
               };
             } else {
               return {
-                finalPrice:
+                amount:
                   Math.round(
                     rubs /
                       (product.price * ((100 - product.saleDiscount) / 100)),
