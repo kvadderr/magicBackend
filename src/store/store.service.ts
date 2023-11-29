@@ -710,7 +710,7 @@ export class StoreService {
 
           const finalData = { ...paymentData, signature };
 
-          /*  moneyData = await (
+          moneyData = await (
             await firstValueFrom(
               this.httpService
                 .post(`${gmApiTerminal}`, finalData, {
@@ -725,7 +725,7 @@ export class StoreService {
                   }),
                 ),
             )
-          ).data; */
+          ).data;
         } else {
           const paymentData = {
             ip,
@@ -745,7 +745,7 @@ export class StoreService {
 
           const finalData = { ...paymentData, signature };
 
-          /* moneyData = await (
+          moneyData = await (
             await firstValueFrom(
               this.httpService
                 .post(`${gmTerminal}`, finalData, {
@@ -760,41 +760,28 @@ export class StoreService {
                   }),
                 ),
             )
-          ).data; */
+          ).data;
         }
       });
       console.log(moneyData);
 
-      if (lang == 'ru') {
-        return {
-          status: 'Success',
-          data: {
-            state: moneyData.state,
-            time: moneyData.time,
-            url: moneyData.data ? moneyData.data : moneyData.url,
-            invoice: moneyData.invoice,
-            signature: moneyData.signature,
-          },
-        };
-      } else {
-        return {
-          status: 'Success',
-          data: {
-            state: `success`,
-            time: `moneyData.time`,
-            url: `http://localhost:3001/store?payment=success`,
-            invoice: `moneyData.invoice`,
-            signature: `moneyData.signature`,
-          },
-        };
-      }
+      return {
+        status: 'Success',
+        data: {
+          state: moneyData.state,
+          time: moneyData.time,
+          url: moneyData.data ? moneyData.data : moneyData.url,
+          invoice: moneyData.invoice,
+          signature: moneyData.signature,
+        },
+      };
     } catch (error) {
       console.log(error);
 
       return {
         status: 'Error',
         message: error.message,
-        url: `http://localhost:3001/store?payment=error`,
+        url: `https://mrust.ru/store?payment=error`,
       };
     }
   }
