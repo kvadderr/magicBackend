@@ -159,6 +159,12 @@ export class StoreService {
     try {
       const isUser = await this.tokenService.validateAccessToken(token);
 
+      if (isUser.role != 'ADMINISTRATOR') {
+        throw new HttpException(
+          'На сайте ведутся технические работы, возвращайтесь позже',
+          HttpStatus.FORBIDDEN,
+        );
+      }
       const product = await this.prisma.product.findUnique({
         where: {
           id: productId,
@@ -641,6 +647,19 @@ export class StoreService {
     country: string,
   ) {
     try {
+      const isUser = await this.tokenService.validateAccessToken(token);
+      if (isUser == null) {
+        throw new UnauthorizedException('Ошибка сессии. Обновите страницу');
+      }
+      //! На время тех работ
+      if (isUser.role != 'ADMINISTRATOR') {
+        throw new HttpException(
+          'На сайте ведутся технические работы, возвращайтесь позже',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+      //! На время тех работ
+
       if (
         (type != 'card' && type != 'qiwi') ||
         (country != 'RUB' && country != 'KZT')
@@ -649,11 +668,6 @@ export class StoreService {
           'Введен некорректный тип оплаты',
           HttpStatus.BAD_REQUEST,
         );
-      }
-      const isUser = await this.tokenService.validateAccessToken(token);
-
-      if (isUser == null) {
-        throw new UnauthorizedException('Ошибка сессии. Обновите страницу');
       }
 
       const user = await this.userService.findById(isUser.id);
