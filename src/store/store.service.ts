@@ -1237,8 +1237,6 @@ export class StoreService {
             }
 
             if (finalPrice) {
-              console.log(finalPrice, 'IM HERE');
-
               if (finalPrice.procent > product.saleDiscount) {
                 return {
                   amount:
@@ -1258,7 +1256,6 @@ export class StoreService {
                 type: 'currency',
               };
             } else {
-              console.log('IM HERE TOO');
               return {
                 amount:
                   Math.round(
