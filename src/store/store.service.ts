@@ -158,13 +158,14 @@ export class StoreService {
   ) {
     try {
       const isUser = await this.tokenService.validateAccessToken(token);
-
+      //! На время тех работ
       if (isUser.role != 'ADMINISTRATOR') {
         throw new HttpException(
           'На сайте ведутся технические работы, возвращайтесь позже',
           HttpStatus.FORBIDDEN,
         );
       }
+      //! На время тех работ
       const product = await this.prisma.product.findUnique({
         where: {
           id: productId,
@@ -884,7 +885,17 @@ export class StoreService {
     serverTypeID: number,
   ) {
     try {
-      const currectPrice = await this.getPriceForCurrency(currency.id, amount);
+      if (amount == 0) {
+        throw new HttpException(
+          'Количество серебра не может быть равно нулю',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      let currectPrice = await this.getPriceForCurrency(currency.id, amount);
+
+      if (currectPrice.finalPrice == 0) {
+        currectPrice.finalPrice = 1;
+      }
 
       await this.prisma.$transaction(async (tx) => {
         if (user.mainBalance + user.bonusBalance < currectPrice.finalPrice) {
