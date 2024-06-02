@@ -5,6 +5,7 @@ export const getBanListURL = 'https://vk.magicrust.ru/api/getBans';
 export const gmTerminal = 'https://paygate.gamemoney.com/terminal/create';
 export const gmApiTerminal = 'https://paygate.gamemoney.com/invoice';
 export const gmStatus = 'https://paygate.gamemoney.com/invoice/status';
-export const success_url = 'https://magicowgs.geryon.space';
-export const fail_url = 'https://magicowgs.geryon.space/profile';
+export const success_url = 'https://mrust.ru/store?payment=success';
+export const fail_url = 'https://mrust.ru/profile';
 export const gmRefund = 'https://paygate.gamemoney.com/checkout/insert';
+

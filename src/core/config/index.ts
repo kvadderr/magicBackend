@@ -7,10 +7,9 @@ export const BASE_IP = process.env.BASE_IP || `http://localhost`;
 export const BASE_STEAM_API_URL =
   process.env.BASE_STEAM_API_URL || 'https://api.steampowered.com/';
 export const BASE_RETURN_URL =
-  process.env.BASE_RETURN_URL || `${BASE_IP}:3001/profile`;
-export const BASE_REALM = process.env.BASE_REALM || `${BASE_IP}:3001/`;
+  process.env.BASE_RETURN_URL || `https://mrust.ru/store`;
+export const BASE_REALM = process.env.BASE_REALM || `https://mrust.ru/`;
 export const SECRET_KEY = process.env.SECRET_KEY || 'SQGmGagfJt797J9p';
-
 export const secureRequst = true;
 export const httpOnlyRequest = true;
 export const sameSiteRequest = 'lax';

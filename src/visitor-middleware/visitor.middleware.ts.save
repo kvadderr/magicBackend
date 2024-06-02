@@ -7,7 +7,9 @@ export class VisitorMiddleware implements NestMiddleware {
   constructor(private readonly prisma: PrismaService) {}
   async use(req: Request, res: Response, next: NextFunction) {
     const clientIp = req.headers['x-real-ip'];
-    req.clientIp = clientIp ? clientIp.toString() : 'unknown';
+	console.log(clientIp);
+	console.log(req.headers['X-REAL-IP']);
+    req.clientIp = clientIp.toString();
 
     const currentDate = new Date();
 
@@ -28,7 +30,7 @@ export class VisitorMiddleware implements NestMiddleware {
     if (!user) {
       await this.prisma.visitors.create({
         data: {
-          ip: req.clientIp,
+          ip: clientIp.toString(),
           sortDate: formattedDate,
           sortedMonth: month,
         },
