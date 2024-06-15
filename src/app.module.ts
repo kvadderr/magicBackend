@@ -45,8 +45,6 @@ import { PaymentModule } from './payment/payment.module';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(UserAgentMiddleware)
-      .forRoutes('auth')
       .apply(VisitorMiddleware)
       .forRoutes('*')
       .apply(LanguageMiddleware)
