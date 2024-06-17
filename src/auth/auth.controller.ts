@@ -88,7 +88,7 @@ export class AuthController {
     }
 
     const data = await this.authService.signUpIn(id, {
-      clientIp: req.headers['x-real-ip'].toString(),
+      clientIp: "req.headers['x-real-ip'].toString()",
       browser: req.browser,
       deviceName: req.deviceName,
       deviceType: req.deviceType,
